@@ -17,6 +17,9 @@ class SecurityHeadersMiddleware
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
         
+        $response->headers->remove('Server');
+        $response->headers->remove('X-Powered-By');
+        
         // HSTS (only in production)
         if (app()->environment('production')) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');

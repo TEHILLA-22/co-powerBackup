@@ -8,24 +8,19 @@ class Kernel extends HttpKernel
 {
     /**
      * The application's global HTTP middleware stack.
-     *
-     * These middleware are run during every request to your application.
-     *
-     * @var array<int, class-string|string>
      */
     protected $middleware = [
         \App\Http\Middleware\TrustProxies::class,
-        \Fruitcake\Cors\HandleCors::class,
+        \Illuminate\Http\Middleware\HandleCors::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\SecurityHeadersMiddleware::class, // Global security headers
     ];
 
     /**
      * The application's route middleware groups.
-     *
-     * @var array<string, array<int, class-string|string>>
      */
     protected $middlewareGroups = [
         'web' => [
@@ -35,22 +30,19 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\XssProtectionMiddleware::class, // XSS protection
         ],
 
         'api' => [
-            'throttle:api',
+            \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
 
     /**
-     * The application's route middleware.
-     *
-     * These middleware may be assigned to groups or used individually.
-     *
-     * @var array<string, class-string|string>
+     * The application's middleware aliases.
      */
-    protected $routeMiddleware = [
+    protected $middlewareAliases = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
@@ -62,11 +54,12 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
 
-        // Custom Security Middleware
-        'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,
-        'xss.protection' => \App\Http\Middleware\XssProtectionMiddleware::class,
-        'security.headers' => \App\Http\Middleware\SecurityHeadersMiddleware::class,
-        'b2b.access' => \App\Http\Middleware\B2BAccessMiddleware::class,
+        // Custom Middleware
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'b2b.access' => \App\Http\Middleware\B2BAccessMiddleware::class,
+        'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,
+        'security.headers' => \App\Http\Middleware\SecurityHeadersMiddleware::class,
+        'xss.protection' => \App\Http\Middleware\XssProtectionMiddleware::class,
+        'admin.guest' => \App\Http\Middleware\AdminGuestMiddleware::class, // For admin guest routes
     ];
 }

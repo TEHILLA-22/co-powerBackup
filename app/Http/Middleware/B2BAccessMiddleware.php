@@ -16,17 +16,17 @@ class B2BAccessMiddleware
                 ->with('warning', 'Please login to access this page.');
         }
 
-        // Check if user is approved
-        if (!$user->is_approved) {
-            return redirect()->route('auth.pending-approval')
-                ->with('warning', 'Your account is pending approval. Please wait for admin approval.');
-        }
-
-        // Check if user is active
-        if ($user->is_suspended ?? false) {
+        // Check if user is active (not suspended)
+        if (!$user->is_active) {
             auth()->logout();
             return redirect()->route('login')
                 ->withErrors(['email' => 'Your account has been suspended. Please contact support.']);
+        }
+
+        // Email must be verified (OTP) before accessing the shop
+        if (!$user->is_verified) {
+            return redirect()->route('auth.verify-otp')
+                ->with('warning', 'Please verify your email address to continue.');
         }
 
         return $next($request);

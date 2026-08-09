@@ -14,7 +14,7 @@ class OrderProcessingController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'admin']);
+        $this->middleware('admin');
     }
 
     /**
@@ -52,8 +52,10 @@ class OrderProcessingController extends Controller
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
+        $admin = auth()->guard('admin')->user();
+
         try {
-            $order->startProcessing(auth()->id(), $validated['notes'] ?? null);
+            $order->startProcessing($admin->id, $validated['notes'] ?? null);
 
             AuditLog::log(
                 'start-processing',
@@ -61,11 +63,11 @@ class OrderProcessingController extends Controller
                 $order->id,
                 ['status' => 'submitted'],
                 ['status' => 'processing'],
-                "Order {$order->order_number} processing started by " . auth()->user()->full_name
+                "Order {$order->order_number} processing started by " . $admin->full_name
             );
 
             return redirect()
-                ->route('admin.orders.process', $order)
+                ->route('admin.orders.show', $order)
                 ->with('success', "Order {$order->order_number} is now being processed.");
 
         } catch (\Exception $e) {
@@ -84,9 +86,11 @@ class OrderProcessingController extends Controller
             'verify_user' => ['nullable', 'boolean'],
         ]);
 
+        $admin = auth()->guard('admin')->user();
+
         try {
             $order->approve(
-                auth()->id(),
+                $admin->id,
                 $validated['notes'] ?? null,
                 $validated['verify_user'] ?? true
             );
@@ -97,13 +101,13 @@ class OrderProcessingController extends Controller
                 $order->id,
                 ['status' => 'processing'],
                 ['status' => 'approved'],
-                "Order {$order->order_number} approved by " . auth()->user()->full_name
+                "Order {$order->order_number} approved by " . $admin->full_name
             );
 
             Mail::to($order->user->email)->queue(new OrderApprovedMail($order));
 
             return redirect()
-                ->route('admin.orders.processing')
+                ->route('admin.orders.index')
                 ->with('success', "Order {$order->order_number} approved successfully.");
 
         } catch (\Exception $e) {
@@ -121,8 +125,10 @@ class OrderProcessingController extends Controller
             'rejection_reason' => ['required', 'string', 'min:10', 'max:500'],
         ]);
 
+        $admin = auth()->guard('admin')->user();
+
         try {
-            $order->reject(auth()->id(), $validated['rejection_reason']);
+            $order->reject($admin->id, $validated['rejection_reason']);
 
             AuditLog::log(
                 'reject-order',
@@ -130,13 +136,13 @@ class OrderProcessingController extends Controller
                 $order->id,
                 ['status' => 'processing'],
                 ['status' => 'rejected'],
-                "Order {$order->order_number} rejected by " . auth()->user()->full_name
+                "Order {$order->order_number} rejected by " . $admin->full_name
             );
 
             Mail::to($order->user->email)->queue(new OrderRejectedMail($order, $validated['rejection_reason']));
 
             return redirect()
-                ->route('admin.orders.processing')
+                ->route('admin.orders.index')
                 ->with('warning', "Order {$order->order_number} rejected.");
 
         } catch (\Exception $e) {
@@ -163,7 +169,7 @@ class OrderProcessingController extends Controller
             $order = Order::find($orderId);
             if ($order && in_array($order->status, ['submitted', 'processing'])) {
                 try {
-                    $order->approve(auth()->id(), $validated['notes'] ?? null, true);
+                    $order->approve(auth()->guard('admin')->id(), $validated['notes'] ?? null, true);
                     $count++;
                 } catch (\Exception $e) {
                     $errors[] = $order->order_number . ': ' . $e->getMessage();
@@ -177,7 +183,7 @@ class OrderProcessingController extends Controller
         }
 
         return redirect()
-            ->route('admin.orders.processing')
+            ->route('admin.orders.index')
             ->with('success', $message);
     }
 }

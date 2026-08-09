@@ -24,7 +24,8 @@ Route::view('/about', 'pages.about')->name('about');
 Route::view('/faq', 'pages.faq')->name('faq');
 Route::view('/privacy-policy', 'pages.privacy-policy')->name('privacy-policy');
 Route::view('/terms', 'pages.terms')->name('terms');
-Route::view('/product', 'shop.catalog.index')->name('product');
+Route::get('/product', [ProductController::class, 'index'])->name('product');
+Route::view('/price-list', 'pages.price-list')->name('price-list');
 
 
 
@@ -42,6 +43,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/pending-approval', [RegisterController::class, 'pendingApproval'])->name('auth.pending-approval');
+    Route::get('/verify-otp', [RegisterController::class, 'showVerifyOtp'])->name('auth.verify-otp');
+    Route::post('/verify-otp', [RegisterController::class, 'verifyOtp'])->name('auth.verify-otp.submit');
+    Route::post('/verify-otp/resend', [RegisterController::class, 'resendOtp'])->name('auth.verify-otp.resend');
 });
 
 // ==================== CUSTOMER ROUTES ====================
@@ -110,7 +114,7 @@ Route::prefix('copower/sales_admin1')->name('admin.')->group(function () {
     });
 
     // Authenticated Admin Routes
-    Route::middleware(['auth:admin'])->group(function () {
+    Route::middleware(['admin'])->group(function () {
         // Dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         
@@ -151,6 +155,7 @@ Route::prefix('copower/sales_admin1')->name('admin.')->group(function () {
         Route::prefix('orders')->name('orders.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\OrderProcessingController::class, 'index'])->name('index');
             Route::get('/{order}', [\App\Http\Controllers\Admin\OrderProcessingController::class, 'show'])->name('show');
+            Route::post('/{order}/start-processing', [\App\Http\Controllers\Admin\OrderProcessingController::class, 'startProcessing'])->name('start-processing');
             Route::post('/{order}/approve', [\App\Http\Controllers\Admin\OrderProcessingController::class, 'approve'])->name('approve');
             Route::post('/{order}/reject', [\App\Http\Controllers\Admin\OrderProcessingController::class, 'reject'])->name('reject');
             Route::post('/bulk-approve', [\App\Http\Controllers\Admin\OrderProcessingController::class, 'bulkApprove'])->name('bulk-approve');

@@ -41,5 +41,8 @@ class DatabaseSeeder extends Seeder
         Category::create(['name' => 'Cosmetics', 'slug' => 'cosmetics', 'is_active' => true]);
         Category::create(['name' => 'Oral Hygiene', 'slug' => 'oral-hygiene', 'is_active' => true]);
         Category::create(['name' => 'Skin Care', 'slug' => 'skin-care', 'is_active' => true]);
+
+        // Create the super admin
+        $this->call(AdminSeeder::class);
     }
 }

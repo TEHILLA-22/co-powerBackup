@@ -12,6 +12,9 @@ class Quote extends Model
     protected $fillable = [
         'quote_number',
         'user_id',
+        'customer_company',
+        'customer_email',
+        'customer_tier',
         'status',
         'items',
         'subtotal',
@@ -24,8 +27,8 @@ class Quote extends Model
         'submitted_at',
         'approved_at',
         'converted_at',
-        'approved_by',
-        'approval_notes',
+        'processed_by',
+        'review_notes',
         'rejection_reason',
         'customer_notes',
         'admin_notes',
@@ -55,7 +58,7 @@ class Quote extends Model
 
     public function approver()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(Admin::class, 'processed_by');
     }
 
     public function convertedOrder()

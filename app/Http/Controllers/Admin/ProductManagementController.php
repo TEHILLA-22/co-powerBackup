@@ -10,18 +10,18 @@ use App\Models\ProductVariant;
 use App\Models\AuditLog;
 use App\Imports\ProductsImport;
 use App\Exports\ProductsExport;
+use App\Exports\ProductsExportTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ProductManagementController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'admin']);
+        $this->middleware('admin');
         $this->middleware('rate.limit:100,1')->only(['store', 'update', 'destroy', 'import']);
     }
 
@@ -196,7 +196,7 @@ class ProductManagementController extends Controller
                 'is_on_sale' => $data['is_on_sale'] ?? false,
                 'sale_start_date' => $data['sale_start_date'] ?? null,
                 'sale_end_date' => $data['sale_end_date'] ?? null,
-                'created_by' => auth()->id(),
+                'created_by' => auth()->guard('admin')->id(),
             ]);
 
             // Handle images
@@ -222,7 +222,6 @@ class ProductManagementController extends Controller
                     'moq_increment' => $variantData['moq_increment'] ?? null,
                     'in_stock' => ($variantData['stock_quantity'] ?? 0) > 0,
                     'is_active' => true,
-                    'created_by' => auth()->id(),
                 ]);
             }
 
@@ -233,7 +232,7 @@ class ProductManagementController extends Controller
                 $product->id,
                 null,
                 $product->toArray(),
-                "Product {$product->name} created by " . auth()->user()->full_name
+                "Product {$product->name} created by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
             );
 
             DB::commit();
@@ -357,7 +356,7 @@ class ProductManagementController extends Controller
                 $product->id,
                 $oldData,
                 $product->toArray(),
-                "Product {$product->name} updated by " . auth()->user()->full_name
+                "Product {$product->name} updated by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
             );
 
             DB::commit();
@@ -386,7 +385,7 @@ class ProductManagementController extends Controller
                 $product->id,
                 $product->toArray(),
                 null,
-                "Product {$product->name} deleted by " . auth()->user()->full_name
+                "Product {$product->name} deleted by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
             );
 
             // Delete images
@@ -425,7 +424,7 @@ class ProductManagementController extends Controller
             $product->id,
             ['is_active' => !$product->is_active],
             ['is_active' => $product->is_active],
-            "Product {$product->name} status toggled to " . ($product->is_active ? 'active' : 'inactive') . " by " . auth()->user()->full_name
+            "Product {$product->name} status toggled to " . ($product->is_active ? 'active' : 'inactive') . " by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
         );
 
         return back()->with('success', "Product status updated.");
@@ -437,7 +436,8 @@ class ProductManagementController extends Controller
     public function export(Request $request)
     {
         $format = $request->get('format', 'xlsx');
-        return Excel::download(new ProductsExport($request->all()), "products.{$format}");
+
+        return ProductsExport::download($request->all(), $format);
     }
 
     /**
@@ -461,9 +461,7 @@ class ProductManagementController extends Controller
         try {
             $import = new ProductsImport();
             $import->skipHeader($request->has('skip_header'));
-            Excel::import($import, $request->file('file'));
-
-            $results = $import->getResults();
+            $results = $import->import($request->file('file')->getRealPath());
 
             AuditLog::log(
                 'import',
@@ -471,7 +469,7 @@ class ProductManagementController extends Controller
                 null,
                 null,
                 ['imported' => $results['imported'], 'failed' => $results['failed']],
-                "Products imported by " . auth()->user()->full_name . ". {$results['imported']} imported, {$results['failed']} failed."
+                "Products imported by " . (auth()->guard('admin')->user()?->full_name ?? 'Admin') . ". {$results['imported']} imported, {$results['failed']} failed."
             );
 
             $message = "Import completed. {$results['imported']} products imported.";
@@ -494,7 +492,7 @@ class ProductManagementController extends Controller
      */
     public function template()
     {
-        return Excel::download(new ProductsExportTemplate(), 'product_import_template.xlsx');
+        return ProductsExportTemplate::download();
     }
 
     // ==================== Helper Methods ====================
@@ -554,7 +552,6 @@ class ProductManagementController extends Controller
                         'moq' => $data['moq'] ?? null,
                         'moq_increment' => $data['moq_increment'] ?? null,
                         'in_stock' => ($data['stock_quantity'] ?? 0) > 0,
-                        'updated_by' => auth()->id(),
                     ]);
                     $updatedIds[] = $variant->id;
                 }
@@ -578,7 +575,6 @@ class ProductManagementController extends Controller
                     'moq_increment' => $data['moq_increment'] ?? null,
                     'in_stock' => ($data['stock_quantity'] ?? 0) > 0,
                     'is_active' => true,
-                    'created_by' => auth()->id(),
                 ]);
                 $updatedIds[] = $variant->id;
             }

@@ -16,22 +16,22 @@ class CustomerApprovalController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'admin']);
+        $this->middleware('admin');
     }
 
     /**
-     * List pending registrations
+     * List customers awaiting admin verification
      */
     public function index(Request $request)
     {
-        $query = User::where('is_approved', false)
-            ->whereNull('approved_at')
+        $query = User::where('is_verified', true)
+            ->where('is_admin_verified', false)
             ->with(['customerTier']);
 
         // Search filter
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'LIKE', "%{$search}%")
                     ->orWhere('last_name', 'LIKE', "%{$search}%")
                     ->orWhere('email', 'LIKE', "%{$search}%")
@@ -40,27 +40,23 @@ class CustomerApprovalController extends Controller
             });
         }
 
-        $pendingUsers = $query->orderBy('created_at', 'asc')
-            ->paginate(20);
+        $pendingUsers = $query->orderBy('created_at', 'asc')->paginate(20);
 
-        // Get pending count for badge
-        $pendingCount = User::where('is_approved', false)
-            ->whereNull('approved_at')
+        $pendingCount = User::where('is_verified', true)
+            ->where('is_admin_verified', false)
             ->count();
 
-        // Cache the pending count for 5 minutes
         Cache::put('admin.pending_count', $pendingCount, 300);
 
         return view('admin.customers.pending', compact('pendingUsers', 'pendingCount'));
     }
 
     /**
-     * Show a single pending registration
+     * Show a single customer
      */
     public function show(User $user)
     {
-        // Load relationships
-        $user->load(['addresses', 'customerTier']);
+        $user->load(['addresses', 'customerTier', 'orders']);
 
         $tiers = CustomerTier::where('is_active', true)
             ->orderBy('display_order')
@@ -70,7 +66,7 @@ class CustomerApprovalController extends Controller
     }
 
     /**
-     * Approve a customer
+     * Verify a customer account
      */
     public function approve(Request $request, User $user)
     {
@@ -79,50 +75,45 @@ class CustomerApprovalController extends Controller
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
-        try {
-            $oldData = $user->toArray();
+        $admin = auth()->guard('admin')->user();
 
-            // Update user
+        try {
             $user->update([
-                'is_approved' => true,
-                'approved_at' => now(),
-                'approved_by' => auth()->id(),
+                'is_admin_verified' => true,
+                'admin_verified_at' => now(),
+                'admin_verified_by' => $admin->id,
                 'customer_tier_id' => $validated['customer_tier_id'],
             ]);
 
-            // Log approval
             AuditLog::log(
                 'approve',
                 'user',
                 $user->id,
-                ['is_approved' => false],
-                ['is_approved' => true, 'tier' => $user->customerTier->name],
-                'Customer approved by ' . auth()->user()->full_name . ($validated['notes'] ? '. Notes: ' . $validated['notes'] : '')
+                ['is_admin_verified' => false],
+                ['is_admin_verified' => true, 'tier' => $user->customerTier->name],
+                'Customer verified by ' . $admin->full_name . ($validated['notes'] ? '. Notes: ' . $validated['notes'] : '')
             );
 
-            // Send approval email (queued)
             Mail::to($user->email)->queue(new AccountApprovedMail($user));
 
-            // Clear pending count cache
             Cache::forget('admin.pending_count');
 
             return redirect()
                 ->route('admin.customers.pending')
-                ->with('success', "{$user->full_name} has been approved successfully.");
-
+                ->with('success', "{$user->full_name} has been verified successfully.");
         } catch (\Exception $e) {
-            \Log::error('Customer approval failed: ' . $e->getMessage(), [
+            \Log::error('Customer verification failed: ' . $e->getMessage(), [
                 'user_id' => $user->id,
-                'admin_id' => auth()->id(),
+                'admin_id' => $admin->id,
             ]);
 
             return back()
-                ->withErrors(['approval' => 'Failed to approve customer. Please try again.']);
+                ->withErrors(['approval' => 'Failed to verify customer. Please try again.']);
         }
     }
 
     /**
-     * Reject a customer
+     * Deactivate a customer account
      */
     public function reject(Request $request, User $user)
     {
@@ -130,49 +121,40 @@ class CustomerApprovalController extends Controller
             'rejection_reason' => ['required', 'string', 'min:10', 'max:500'],
         ]);
 
+        $admin = auth()->guard('admin')->user();
+
         try {
-            $oldData = $user->toArray();
+            $user->unverifyAdmin($validated['rejection_reason']);
 
-            // Reject the user
-            $user->update([
-                'is_approved' => false,
-                'rejection_reason' => $validated['rejection_reason'],
-                'approved_by' => auth()->id(),
-            ]);
-
-            // Log rejection
             AuditLog::log(
                 'reject',
                 'user',
                 $user->id,
-                ['is_approved' => false],
-                ['is_approved' => false, 'reason' => $validated['rejection_reason']],
-                'Customer rejected by ' . auth()->user()->full_name . '. Reason: ' . $validated['rejection_reason']
+                ['is_active' => true],
+                ['is_active' => false, 'reason' => $validated['rejection_reason']],
+                'Customer deactivated by ' . $admin->full_name . '. Reason: ' . $validated['rejection_reason']
             );
 
-            // Send rejection email (queued)
             Mail::to($user->email)->queue(new AccountRejectedMail($user, $validated['rejection_reason']));
 
-            // Clear pending count cache
             Cache::forget('admin.pending_count');
 
             return redirect()
                 ->route('admin.customers.pending')
-                ->with('warning', "{$user->full_name} has been rejected.");
-
+                ->with('warning', "{$user->full_name} has been deactivated.");
         } catch (\Exception $e) {
-            \Log::error('Customer rejection failed: ' . $e->getMessage(), [
+            \Log::error('Customer deactivation failed: ' . $e->getMessage(), [
                 'user_id' => $user->id,
-                'admin_id' => auth()->id(),
+                'admin_id' => $admin->id,
             ]);
 
             return back()
-                ->withErrors(['rejection' => 'Failed to reject customer. Please try again.']);
+                ->withErrors(['rejection' => 'Failed to deactivate customer. Please try again.']);
         }
     }
 
     /**
-     * Bulk approve selected customers
+     * Bulk verify customers
      */
     public function bulkApprove(Request $request)
     {
@@ -182,21 +164,22 @@ class CustomerApprovalController extends Controller
             'customer_tier_id' => ['required', 'exists:customer_tiers,id'],
         ]);
 
+        $admin = auth()->guard('admin')->user();
+
         $count = 0;
         $errors = [];
 
         foreach ($validated['user_ids'] as $userId) {
             $user = User::find($userId);
-            if ($user && !$user->is_approved) {
+            if ($user && !$user->is_admin_verified) {
                 try {
                     $user->update([
-                        'is_approved' => true,
-                        'approved_at' => now(),
-                        'approved_by' => auth()->id(),
+                        'is_admin_verified' => true,
+                        'admin_verified_at' => now(),
+                        'admin_verified_by' => $admin->id,
                         'customer_tier_id' => $validated['customer_tier_id'],
                     ]);
 
-                    // Send email
                     Mail::to($user->email)->queue(new AccountApprovedMail($user));
 
                     $count++;
@@ -206,10 +189,9 @@ class CustomerApprovalController extends Controller
             }
         }
 
-        // Clear pending count cache
         Cache::forget('admin.pending_count');
 
-        $message = "{$count} customer(s) approved successfully.";
+        $message = "{$count} customer(s) verified successfully.";
         if (!empty($errors)) {
             $message .= ' Errors: ' . implode('; ', $errors);
         }

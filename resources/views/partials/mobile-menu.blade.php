@@ -38,7 +38,7 @@
             <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
                 <i class="fas fa-tags mr-3"></i> All Brands
             </a>
-            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
+            <a href="{{ route('price-list') }}" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
                 <i class="fas fa-file-invoice-dollar mr-3"></i> Price List
             </a>
             <a href="{{ route('quote.bulk') }}" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">

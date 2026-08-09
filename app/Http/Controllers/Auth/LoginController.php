@@ -57,19 +57,19 @@ class LoginController extends Controller
         )) {
             $user = auth()->user();
 
-            // Check if user is approved
+            // Check if email is verified
             if (!$user->is_verified) {
                 Auth::logout();
                 
                 // Clear rate limiter
                 RateLimiter::clear($key);
                 
-                return redirect()->route('auth.pending-approval')
-                    ->with('warning', 'Your account is pending approval. You will receive an email once approved.');
+                return redirect()->route('auth.verify-otp')
+                    ->with('warning', 'Please verify your email address before continuing.');
             }
 
             // Check if user is active (not suspended)
-            if ($user->is_suspended ?? false) {
+            if (!$user->is_active) {
                 Auth::logout();
                 
                 return back()
@@ -95,11 +95,6 @@ class LoginController extends Controller
 
             // Regenerate session
             $request->session()->regenerate();
-
-            // Redirect based on role
-            if ($user->is_admin) {
-                return redirect()->route('admin.dashboard');
-            }
 
             return redirect()->intended(route('customer.products'))
                 ->with('success', 'Welcome back, ' . $user->first_name . '!');
@@ -146,22 +141,22 @@ class LoginController extends Controller
     }
 
     /**
-     * Show pending approval page
+     * Show pending approval page (legacy, retained for safety)
      */
     public function pendingApproval()
     {
         $user = auth()->user();
-
-        // If user is already approved, redirect to dashboard
-        if ($user && $user->is_approved) {
-            return redirect()->route('customer.dashboard');
-        }
 
         // If no user, redirect to login
         if (!$user) {
             return redirect()->route('login');
         }
 
-        return view('auth.pending-approval');
+        // If verified, redirect to the shop
+        if ($user->is_verified) {
+            return redirect()->route('customer.products');
+        }
+
+        return redirect()->route('auth.verify-otp');
     }
 }

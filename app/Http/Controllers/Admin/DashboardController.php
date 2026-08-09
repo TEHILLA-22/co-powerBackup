@@ -15,7 +15,7 @@ class DashboardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:admin');
+        $this->middleware('admin');
     }
 
     public function index()
@@ -43,8 +43,8 @@ class DashboardController extends Controller
                 
                 // Customers
                 'total_customers' => User::count(),
-                'pending_approvals' => User::where('is_approved', false)->count(),
-                'active_customers' => User::where('is_approved', true)->count(),
+                'pending_approvals' => User::where('is_admin_verified', false)->where('is_active', true)->count(),
+                'active_customers' => User::where('is_active', true)->count(),
                 'new_customers_this_month' => User::whereMonth('created_at', now()->month)->count(),
                 
                 // Products
@@ -70,13 +70,14 @@ class DashboardController extends Controller
             ->get();
 
         // Recent customers
-        $recentCustomers = User::where('is_approved', true)
+        $recentCustomers = User::where('is_active', true)
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
-        // Pending approvals
-        $pendingCustomers = User::where('is_approved', false)
+        // Pending customer verification
+        $pendingCustomers = User::where('is_admin_verified', false)
+            ->where('is_active', true)
             ->orderBy('created_at', 'asc')
             ->limit(5)
             ->get();

@@ -89,12 +89,12 @@ class Order extends Model
 
     public function processedBy()
     {
-        return $this->belongsTo(User::class, 'processed_by');
+        return $this->belongsTo(Admin::class, 'processed_by');
     }
 
     public function approvedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(Admin::class, 'approved_by');
     }
 
     // ============ STATUS LABELS ============

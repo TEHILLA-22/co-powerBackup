@@ -216,13 +216,20 @@ class QuoteController extends Controller implements HasMiddleware
     /**
      * Remove item from quote
      */
-    public function removeItem($key)
+    public function removeItem(Request $request, $key)
     {
         $quoteItems = session('quote_items', []);
         
         if (isset($quoteItems[$key])) {
             unset($quoteItems[$key]);
             session(['quote_items' => $quoteItems]);
+        }
+
+        if ($request->wantsJson() || $request->isJson() || $request->isMethod('DELETE')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Item removed from quote.',
+            ]);
         }
 
         return redirect()
@@ -233,9 +240,17 @@ class QuoteController extends Controller implements HasMiddleware
     /**
      * Clear quote
      */
-    public function clear()
+    public function clear(Request $request)
     {
         session()->forget('quote_items');
+
+        if ($request->wantsJson() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Quote cleared.',
+            ]);
+        }
+
         return redirect()
             ->route('quote.index')
             ->with('info', 'Quote cleared.');

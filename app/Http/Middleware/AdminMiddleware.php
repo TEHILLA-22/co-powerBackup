@@ -37,7 +37,7 @@ class AdminMiddleware
         }
 
         // Check if password needs changing
-        if ($admin->force_password_change && !$request->routeIs('admin.password.change*')) {
+        if ($admin->force_password_change && !$request->routeIs('admin.password.*')) {
             return redirect()->route('admin.password.change')
                 ->with('warning', 'Please change your password.');
         }

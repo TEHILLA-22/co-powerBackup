@@ -80,7 +80,8 @@ class RegisterController extends Controller
             Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
 
             // Notify admins about the new registration
-            $adminEmails = config('b2b.admin_notification_emails', ['admin@copower.com']);
+            $adminEmails = (string) config('b2b.admin_notification_emails', 'admin@copower.com');
+            $adminEmails = array_map('trim', explode(',', $adminEmails));
             Mail::to($adminEmails)->queue(new NewRegistrationNotificationMail($user));
 
             AuditLog::log(

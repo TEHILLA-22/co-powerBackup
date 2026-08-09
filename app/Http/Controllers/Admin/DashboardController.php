@@ -9,13 +9,14 @@ use App\Models\Product;
 use App\Models\Admin;
 use App\Models\Quote;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\Cache;
 
-class DashboardController extends Controller
+class DashboardController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public static function middleware(): array
     {
-        $this->middleware('admin');
+        return ['admin'];
     }
 
     public function index()

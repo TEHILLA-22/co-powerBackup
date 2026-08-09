@@ -135,7 +135,7 @@ class Order extends Model
     {
         $transitions = [
             'draft' => ['submitted'],
-            'submitted' => ['processing'],
+            'submitted' => ['processing', 'approved'],
             'processing' => ['approved', 'rejected'],
             'approved' => ['processing_fulfillment', 'cancelled'],
             'processing_fulfillment' => ['shipped', 'cancelled'],

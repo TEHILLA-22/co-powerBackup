@@ -27,7 +27,7 @@
                 <!-- Product Image -->
                 <div>
                     <div class="bg-copower-gray rounded-xl overflow-hidden">
-                        <img src="{{ $product->main_image ? asset('storage/' . $product->main_image) : asset('images/placeholder-product.jpg') }}" 
+                        <img src="{{ $product->image_url }}" 
                              alt="{{ $product->name }}" 
                              class="w-full h-96 object-cover">
                     </div>

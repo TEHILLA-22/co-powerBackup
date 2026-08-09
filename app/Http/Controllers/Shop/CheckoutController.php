@@ -13,17 +13,22 @@ use App\Mail\OrderProcessingMail;
 use App\Services\Pricing\Contracts\PricingEngineInterface;
 use App\Services\SettingsService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
-class CheckoutController extends Controller
+class CheckoutController extends Controller implements HasMiddleware
 {
     protected PricingEngineInterface $pricingEngine;
 
+    public static function middleware(): array
+    {
+        return ['auth', 'b2b.access'];
+    }
+
     public function __construct(PricingEngineInterface $pricingEngine)
     {
-        $this->middleware(['auth', 'b2b.access']);
         $this->pricingEngine = $pricingEngine;
     }
 

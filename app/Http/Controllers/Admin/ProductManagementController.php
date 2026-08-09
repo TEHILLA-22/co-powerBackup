@@ -9,20 +9,24 @@ use App\Models\CustomerTier;
 use App\Models\ProductVariant;
 use App\Models\AuditLog;
 use App\Imports\ProductsImport;
+use App\Imports\SianProductsImport;
 use App\Exports\ProductsExport;
 use App\Exports\ProductsExportTemplate;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
-class ProductManagementController extends Controller
+class ProductManagementController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public static function middleware(): array
     {
-        $this->middleware('admin');
-        $this->middleware('rate.limit:100,1')->only(['store', 'update', 'destroy', 'import']);
+        return [
+            'admin',
+            new \Illuminate\Routing\Controllers\Middleware('rate.limit:100,1', only: ['store', 'update', 'destroy', 'import']),
+        ];
     }
 
     /**
@@ -226,13 +230,14 @@ class ProductManagementController extends Controller
             }
 
             // Log
+            $actorName = auth()->guard('admin')->user()?->full_name ?? 'Admin';
             AuditLog::log(
                 'create',
                 'product',
                 $product->id,
                 null,
                 $product->toArray(),
-                "Product {$product->name} created by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
+                "Product {$product->name} created by {$actorName}"
             );
 
             DB::commit();
@@ -340,7 +345,7 @@ class ProductManagementController extends Controller
                 'is_on_sale' => $data['is_on_sale'] ?? false,
                 'sale_start_date' => $data['sale_start_date'] ?? null,
                 'sale_end_date' => $data['sale_end_date'] ?? null,
-                'updated_by' => auth()->id(),
+                'updated_by' => auth()->guard('admin')->id(),
             ]);
 
             // Handle images
@@ -350,13 +355,14 @@ class ProductManagementController extends Controller
             $this->syncVariants($product, $data['variants']);
 
             // Log
+            $actorName = auth()->guard('admin')->user()?->full_name ?? 'Admin';
             AuditLog::log(
                 'update',
                 'product',
                 $product->id,
                 $oldData,
                 $product->toArray(),
-                "Product {$product->name} updated by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
+                "Product {$product->name} updated by {$actorName}"
             );
 
             DB::commit();
@@ -379,13 +385,14 @@ class ProductManagementController extends Controller
     {
         try {
             // Log before delete
+            $actorName = auth()->guard('admin')->user()?->full_name ?? 'Admin';
             AuditLog::log(
                 'delete',
                 'product',
                 $product->id,
                 $product->toArray(),
                 null,
-                "Product {$product->name} deleted by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
+                "Product {$product->name} deleted by {$actorName}"
             );
 
             // Delete images
@@ -418,13 +425,14 @@ class ProductManagementController extends Controller
         $product->is_active = !$product->is_active;
         $product->save();
 
+        $actorName = auth()->guard('admin')->user()?->full_name ?? 'Admin';
         AuditLog::log(
             'toggle-status',
             'product',
             $product->id,
             ['is_active' => !$product->is_active],
             ['is_active' => $product->is_active],
-            "Product {$product->name} status toggled to " . ($product->is_active ? 'active' : 'inactive') . " by " . auth()->guard('admin')->user()?->full_name ?? 'Admin'
+            "Product {$product->name} status toggled to " . ($product->is_active ? 'active' : 'inactive') . " by {$actorName}"
         );
 
         return back()->with('success', "Product status updated.");
@@ -463,13 +471,14 @@ class ProductManagementController extends Controller
             $import->skipHeader($request->has('skip_header'));
             $results = $import->import($request->file('file')->getRealPath());
 
+            $actorName = auth()->guard('admin')->user()?->full_name ?? 'Admin';
             AuditLog::log(
                 'import',
                 'product',
                 null,
                 null,
                 ['imported' => $results['imported'], 'failed' => $results['failed']],
-                "Products imported by " . (auth()->guard('admin')->user()?->full_name ?? 'Admin') . ". {$results['imported']} imported, {$results['failed']} failed."
+                "Products imported by {$actorName}. {$results['imported']} imported, {$results['failed']} failed."
             );
 
             $message = "Import completed. {$results['imported']} products imported.";
@@ -493,6 +502,49 @@ class ProductManagementController extends Controller
     public function template()
     {
         return ProductsExportTemplate::download();
+    }
+
+    /**
+     * Import products from the SIAN price-list spreadsheet.
+     * Re-importing the same supplier file updates existing products (by EAN/SKU)
+     * instead of duplicating them.
+     */
+    public function importSian(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
+        ]);
+
+        try {
+            @ini_set('max_execution_time', 600);
+
+            $results = (new SianProductsImport())->import($request->file('file')->getRealPath());
+
+            $actorName = auth()->guard('admin')->user()?->full_name ?? 'Admin';
+            AuditLog::log(
+                'import',
+                'sian-price-list',
+                null,
+                null,
+                ['imported' => $results['imported'], 'updated' => $results['updated'], 'failed' => $results['failed']],
+                "SIAN price list imported by {$actorName}. {$results['imported']} new, {$results['updated']} updated, {$results['failed']} failed."
+            );
+
+            if ($results['failed'] > 0) {
+                \Log::warning('SIAN import had partial failures.', ['errors' => array_slice($results['errors'], 0, 50)]);
+            }
+
+            $message = "SIAN price list imported: {$results['imported']} new, {$results['updated']} updated, {$results['failed']} failed.";
+            if ($results['failed'] > 0) {
+                $message .= ' The first failing rows were logged to the server log.';
+            }
+
+            return redirect()->route('admin.products.index')->with('success', $message);
+        } catch (\Exception $e) {
+            \Log::error('SIAN import failed: ' . $e->getMessage());
+
+            return back()->withErrors(['error' => 'SIAN import failed: ' . $e->getMessage()]);
+        }
     }
 
     // ==================== Helper Methods ====================

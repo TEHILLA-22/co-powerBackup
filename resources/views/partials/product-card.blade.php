@@ -1,7 +1,7 @@
 {{-- resources/views/partials/product-card.blade.php --}}
 <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
     <div class="relative overflow-hidden">
-        <img src="{{ asset('storage/' . ($product->main_image ?? 'products/placeholder.jpg')) }}" 
+        <img src="{{ $product->image_url }}" 
              alt="{{ $product->name }}" 
              class="w-full h-48 object-cover group-hover:scale-105 transition duration-500">
         <div class="absolute top-2 right-2 bg-yellow-400 text-blue-900 text-xs font-bold px-2 py-1 rounded">

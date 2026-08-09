@@ -64,6 +64,9 @@
                     Every product, brand, SKU, EAN and MOQ is available in the catalog. Sign in to see your tier's live pricing before you build your quote.
                 </p>
                 <div class="mt-6 flex flex-wrap justify-center gap-4">
+                    <a href="{{ route('price-list.download') }}" class="inline-flex items-center px-6 py-3 bg-copower-banner text-white rounded-xl font-semibold text-sm hover:bg-opacity-90 transition">
+                        Download Price List (xlsx)
+                    </a>
                     <a href="{{ route('customer.products') }}" class="inline-flex items-center px-6 py-3 bg-copower-dark text-white rounded-xl font-semibold text-sm hover:bg-opacity-90 transition">
                         All Products
                     </a>

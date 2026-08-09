@@ -60,6 +60,16 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(Admin::class, 'updated_by');
+    }
+
     public function variants()
     {
         return $this->hasMany(ProductVariant::class);
@@ -129,6 +139,19 @@ class Product extends Model
         }
 
         return ['valid' => true];
+    }
+
+    public function getImageUrlAttribute()
+    {
+        if ($this->main_image) {
+            if (str_starts_with($this->main_image, 'http')) {
+                return $this->main_image;
+            }
+
+            return asset('storage/' . $this->main_image);
+        }
+
+        return asset('images/copower_empty.png');
     }
 
     public function getLowestPriceAttribute()

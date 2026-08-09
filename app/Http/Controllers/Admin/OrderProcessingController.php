@@ -8,13 +8,14 @@ use App\Models\AuditLog;
 use App\Mail\OrderApprovedMail;
 use App\Mail\OrderRejectedMail;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\Mail;
 
-class OrderProcessingController extends Controller
+class OrderProcessingController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public static function middleware(): array
     {
-        $this->middleware('admin');
+        return ['admin'];
     }
 
     /**
@@ -22,7 +23,7 @@ class OrderProcessingController extends Controller
      */
     public function index()
     {
-        $orders = Order::with(['user', 'items'])
+        $orders = Order::with(['user', 'items', 'items.product', 'items.variant'])
             ->where('status', 'submitted')
             ->orderBy('created_at', 'asc')
             ->paginate(20);

@@ -5,15 +5,14 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Cache;
 
 class RateLimitMiddleware
 {
     public function handle(Request $request, Closure $next, $maxAttempts = 60, $decayMinutes = 1)
     {
         $key = $this->resolveRequestSignature($request);
-        $maxAttempts = SettingsService::get('max_login_attempts', 5);
-        $decayMinutes = SettingsService::get('lockout_duration_minutes', 30);
+        $maxAttempts = (int) $maxAttempts;
+        $decaySeconds = ((int) $decayMinutes) * 60;
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             return response()->json([
@@ -22,17 +21,15 @@ class RateLimitMiddleware
             ], 429);
         }
 
-        RateLimiter::hit($key, $decayMinutes * 60);
+        RateLimiter::hit($key, $decaySeconds);
 
-        $response = $next($request);
-
-        return $response;
+        return $next($request);
     }
 
-    protected function resolveRequestSignature($request)
+    protected function resolveRequestSignature(Request $request)
     {
         return sha1(
-            $request->method() . '|' . $request->url() . '|' . $request->ip()
+            $request->method() . '|' . $request->url() . '|' . ($request->ip() ?? 'unknown')
         );
     }
 }

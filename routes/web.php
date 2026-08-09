@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\QuoteController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\PriceListController;
 use App\Http\Middleware\B2BAccessMiddleware;
 
 /*
@@ -26,6 +27,7 @@ Route::view('/privacy-policy', 'pages.privacy-policy')->name('privacy-policy');
 Route::view('/terms', 'pages.terms')->name('terms');
 Route::get('/product', [ProductController::class, 'index'])->name('product');
 Route::view('/price-list', 'pages.price-list')->name('price-list');
+Route::get('/price-list/download', [PriceListController::class, 'download'])->name('price-list.download');
 
 
 
@@ -148,6 +150,7 @@ Route::prefix('copower/sales_admin1')->name('admin.')->group(function () {
             Route::get('/export', [\App\Http\Controllers\Admin\ProductManagementController::class, 'export'])->name('export');
             Route::get('/import', [\App\Http\Controllers\Admin\ProductManagementController::class, 'importForm'])->name('import-form');
             Route::post('/import', [\App\Http\Controllers\Admin\ProductManagementController::class, 'import'])->name('import');
+            Route::post('/import-sian', [\App\Http\Controllers\Admin\ProductManagementController::class, 'importSian'])->name('import-sian');
             Route::get('/template', [\App\Http\Controllers\Admin\ProductManagementController::class, 'template'])->name('template');
         });
 

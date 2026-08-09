@@ -81,7 +81,7 @@ class SettingsSeeder extends Seeder
             // Quote Settings
             [
                 'key' => 'minimum_order_value',
-                'value' => '5000',
+                'value' => '2000',
                 'group' => 'quotes',
                 'type' => 'integer',
                 'description' => 'Minimum order value in GBP',

@@ -9,16 +9,21 @@ use App\Models\ProductVariant;
 use App\Services\SettingsService;
 use App\Services\Pricing\Contracts\PricingEngineInterface;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\Cache;
 
-class ProductController extends Controller
+class ProductController extends Controller implements HasMiddleware
 {
     protected PricingEngineInterface $pricingEngine;
     protected $productsPerPage;
 
+    public static function middleware(): array
+    {
+        return ['auth', 'b2b.access'];
+    }
+
     public function __construct(PricingEngineInterface $pricingEngine)
     {
-        $this->middleware(['auth', 'b2b.access']);
         $this->pricingEngine = $pricingEngine;
         $this->productsPerPage = SettingsService::get('products_per_page', 24);
     }

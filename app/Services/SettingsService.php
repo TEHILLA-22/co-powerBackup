@@ -12,20 +12,13 @@ class SettingsService
 
     public static function get(string $key, $default = null)
     {
-        $settings = self::getCached();
-        $value = $settings[$key] ?? $default;
+        $item = self::getCached()[$key] ?? null;
 
-        // Decrypt if encrypted
-        $setting = Setting::where('key', $key)->first();
-        if ($setting && $setting->is_encrypted && $value) {
-            try {
-                return Crypt::decryptString($value);
-            } catch (\Exception $e) {
-                return $value;
-            }
+        if ($item === null) {
+            return $default;
         }
 
-        return $value;
+        return $item['value'];
     }
 
     public static function set(string $key, $value)
@@ -44,29 +37,40 @@ class SettingsService
         self::clearCache();
     }
 
-    public static function getCached()
+    public static function getCached(): array
     {
         return Cache::remember(self::$cacheKey, 3600, function () {
-            return Setting::all()->mapWithKeys(function ($setting) {
+            return Setting::all()->mapWithKeys(function (Setting $setting) {
                 $value = $setting->value;
+
                 if ($setting->is_encrypted && $value) {
                     try {
                         $value = Crypt::decryptString($value);
                     } catch (\Exception $e) {
-                        // Keep as is
+                        // Keep stored value as-is
                     }
                 }
-                return [$setting->key => $value];
+
+                return [
+                    $setting->key => [
+                        'value' => $value,
+                        'is_encrypted' => (bool) $setting->is_encrypted,
+                    ],
+                ];
             })->toArray();
         });
     }
 
-    public static function getGroup(string $group)
+    public static function getGroup(string $group): array
     {
-        $settings = self::getCached();
-        return Setting::where('group', $group)->get()->mapWithKeys(function ($setting) use ($settings) {
-            return [$setting->key => $settings[$setting->key] ?? null];
-        })->toArray();
+        $all = self::getCached();
+
+        return Setting::where('group', $group)
+            ->pluck('key')
+            ->mapWithKeys(function (string $key) use ($all) {
+                return [$key => $all[$key]['value'] ?? null];
+            })
+            ->toArray();
     }
 
     public static function clearCache()
@@ -74,7 +78,7 @@ class SettingsService
         Cache::forget(self::$cacheKey);
     }
 
-    public static function getAll()
+    public static function getAll(): array
     {
         return self::getCached();
     }

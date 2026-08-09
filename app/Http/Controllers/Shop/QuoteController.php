@@ -12,16 +12,21 @@ use App\Mail\NewQuoteNotificationMail;
 use App\Services\Pricing\Contracts\PricingEngineInterface;
 use App\Services\SettingsService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
-class QuoteController extends Controller
+class QuoteController extends Controller implements HasMiddleware
 {
     protected PricingEngineInterface $pricingEngine;
 
+    public static function middleware(): array
+    {
+        return ['auth', 'b2b.access'];
+    }
+
     public function __construct(PricingEngineInterface $pricingEngine)
     {
-        $this->middleware(['auth', 'b2b.access']);
         $this->pricingEngine = $pricingEngine;
     }
 
@@ -90,7 +95,7 @@ class QuoteController extends Controller
         }
 
         // Get minimum order value from settings
-        $minimumOrderValue = SettingsService::get('minimum_order_value', 5000);
+        $minimumOrderValue = SettingsService::get('minimum_order_value', 2000);
         $meetsMinimum = $subtotal >= $minimumOrderValue;
 
         // Update session quote count
@@ -668,6 +673,7 @@ class QuoteController extends Controller
         $lastQuote = Quote::whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->orderBy('id', 'desc')
+            ->lockForUpdate()
             ->first();
 
         $sequence = $lastQuote ? intval(substr($lastQuote->quote_number, -4)) + 1 : 1;

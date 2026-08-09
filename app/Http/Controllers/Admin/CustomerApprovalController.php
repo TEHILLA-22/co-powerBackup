@@ -9,14 +9,15 @@ use App\Models\AuditLog;
 use App\Mail\AccountApprovedMail;
 use App\Mail\AccountRejectedMail;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 
-class CustomerApprovalController extends Controller
+class CustomerApprovalController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public static function middleware(): array
     {
-        $this->middleware('admin');
+        return ['admin'];
     }
 
     /**

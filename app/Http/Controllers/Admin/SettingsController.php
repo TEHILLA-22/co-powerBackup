@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Services\SettingsService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-class SettingsController extends Controller
+class SettingsController extends Controller implements HasMiddleware
 {
-    public function __construct()
+    public static function middleware(): array
     {
-        $this->middleware('admin');
+        return ['admin'];
     }
 
     /**

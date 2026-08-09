@@ -252,8 +252,8 @@ class SianProductsImport
             'in_stock' => $stock >= $caseSize ? 1 : 0,
             'allow_backorder' => 1,
             'min_order_quantity' => 1,
-            'moq' => $caseSize,
-            'moq_increment' => $caseSize,
+            'moq' => 1,
+            'moq_increment' => 1,
             'created_at' => $now,
             'updated_at' => $now,
         ];

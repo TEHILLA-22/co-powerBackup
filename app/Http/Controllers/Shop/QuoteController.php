@@ -111,6 +111,60 @@ class QuoteController extends Controller implements HasMiddleware
         ));
     }
 
+    /**
+     * Add a single product (from its detail page) to the session quote.
+     * Adding the same product again increases its quantity.
+     */
+    public function add(Request $request, string $slug)
+    {
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+            'variant_type' => ['nullable', 'string', 'in:unit,case,layer,pallet'],
+        ]);
+
+        $product = Product::where('slug', $slug)->where('is_active', true)->firstOrFail();
+
+        $variant = $product->variants()
+            ->where('is_active', true)
+            ->when($validated['variant_type'] ?? null, function ($q, $type) {
+                return $q->where('variant_type', $type);
+            })
+            ->orderByRaw("FIELD(variant_type, 'unit', 'case', 'layer', 'pallet')")
+            ->first();
+
+        if (! $variant) {
+            return back()->withErrors(['quantity' => 'No purchasable variant is available for this product.']);
+        }
+
+        $quantity = (int) $validated['quantity'];
+        $user = auth()->user();
+
+        if ($variant->stock_quantity < $quantity && ! $variant->allow_backorder) {
+            return back()->withErrors(['quantity' => "Only {$variant->stock_quantity} units available for this product."]);
+        }
+
+        $quoteItems = session('quote_items', []);
+        $key = (string) $variant->id;
+
+        if (isset($quoteItems[$key])) {
+            $quoteItems[$key]['quantity'] += $quantity;
+            $message = "{$product->name} quantity increased in your quote.";
+        } else {
+            $quoteItems[$key] = [
+                'variant_id' => $variant->id,
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'variant_type' => $variant->variant_type,
+            ];
+            $message = "{$product->name} added to your quote.";
+        }
+
+        session(['quote_items' => $quoteItems]);
+        session(['quote_count' => count($quoteItems)]);
+
+        return back()->with('success', $message);
+    }
+
     // ... other methods (updateItem, removeItem, clear, bulkIndex, bulkValidate, bulkStore, parsePaste, submit, confirmation)
 
 

@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', B2BAccessMiddleware::class])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('product.show');
+    Route::post('/products/{slug}/quote', [\App\Http\Controllers\Shop\QuoteController::class, 'add'])->name('product.add-to-quote');
     Route::get('/quick-search', [ProductController::class, 'quickSearch'])->name('product.quick-search');
     Route::get('/barcode-lookup', [ProductController::class, 'barcodeLookup'])->name('product.barcode-lookup');
 });

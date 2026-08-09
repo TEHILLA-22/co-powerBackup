@@ -83,7 +83,7 @@
                         <span class="block">Your</span>
                         <span class="block">Quote</span>
                     </div>
-                    @php $count = session('quote_count', 0); @endphp
+                    @php $count = count(session('quote_items', [])); @endphp
                     @if($count > 0)
                         <span class="absolute -top-1 -right-1 sm:right-0 bg-copower-banner text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                             {{ $count }}

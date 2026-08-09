@@ -96,15 +96,28 @@
 
                     <!-- Add to Quote -->
                     <div class="mt-6 border-t border-gray-200 pt-6">
-                        <form action="#" method="POST" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <form action="{{ route('customer.product.add-to-quote', $product->slug) }}" method="POST" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                             @csrf
+                            <div class="flex items-center space-x-3">
+                                <label for="variant_type" class="text-sm font-medium text-copower-dark">Pack:</label>
+                                <select
+                                    id="variant_type"
+                                    name="variant_type"
+                                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-copower-banner focus:border-transparent">
+                                    @foreach($product->variants as $variantOption)
+                                        <option value="{{ $variantOption->variant_type }}" @selected($variantOption->variant_type === 'unit')>
+                                            {{ ucfirst($variantOption->variant_type) }} — £{{ number_format($variantOption->base_price, 2) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div class="flex items-center space-x-3">
                                 <label for="quantity" class="text-sm font-medium text-copower-dark">Qty:</label>
                                 <input type="number" 
                                        id="quantity" 
                                        name="quantity" 
                                        value="{{ $product->moq }}" 
-                                       min="{{ $product->moq }}"
+                                       min="1"
                                        step="{{ $product->moq_increment ?? 1 }}"
                                        class="w-20 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-copower-banner focus:border-transparent">
                             </div>
@@ -117,12 +130,12 @@
                                 </a>
                             </div>
                         </form>
+                        @if($errors->has('quantity'))
+                            <p class="text-xs text-red-600 mt-3">{{ $errors->first('quantity') }}</p>
+                        @endif
                         <p class="text-xs text-gray-500 mt-3">
                             <i class="fas fa-info-circle mr-1"></i> 
-                            Minimum order: {{ $product->moq }} units. 
-                            @if($product->moq_increment > 1)
-                                Quantity must be in multiples of {{ $product->moq_increment }}.
-                            @endif
+                            Adding a product you already have in your quote increases its quantity. Minimum order value £{{ number_format(\App\Services\SettingsService::get('minimum_order_value', 2000), 2) }}.
                         </p>
                     </div>
                 </div>

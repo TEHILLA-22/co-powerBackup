@@ -30,7 +30,7 @@ class AccountApprovedMail extends Mailable
                 'user' => $this->user,
                 'name' => $this->user->full_name,
                 'loginUrl' => route('login'),
-                'dashboardUrl' => route('customer.dashboard'),
+                'dashboardUrl' => route('customer.products'),
             ]
         );
     }

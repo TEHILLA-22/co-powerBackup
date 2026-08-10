@@ -22,8 +22,8 @@ class OrderConfirmationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Copower Wholesale: New Quote Request # ' . $this->order->order_number,
-            from: env('MAIL_FROM_ADDRESS', 'noreply@copower.com'),
+            subject: 'Copower Wholesale: Order Confirmation # ' . $this->order->order_number,
+            from: config('mail.from.address', 'noreply@copower.com'),
         );
     }
 

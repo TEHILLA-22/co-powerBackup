@@ -13,7 +13,7 @@ return [
     | Admin Notification Emails
     |--------------------------------------------------------------------------
     */
-    'admin_notification_emails' => env('ADMIN_NOTIFICATION_EMAILS', 'admin@copower.com,sales@copower.com'),
+    'admin_notification_emails' => env('ADMIN_NOTIFICATION_EMAILS', 'info@coopower.co.uk,sales@copower.com'),
 
     /*
     |--------------------------------------------------------------------------

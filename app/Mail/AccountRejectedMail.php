@@ -33,7 +33,7 @@ class AccountRejectedMail extends Mailable
                 'user' => $this->user,
                 'name' => $this->user->full_name,
                 'reason' => $this->reason,
-                'contactUrl' => route('contact'),
+                'contactUrl' => config('app.url') . '/about',
             ]
         );
     }

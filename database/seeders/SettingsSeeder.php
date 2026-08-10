@@ -186,7 +186,7 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'mail_from_address',
-                'value' => 'admin@copower.com',
+                'value' => 'info@coopower.co.uk',
                 'group' => 'email',
                 'type' => 'string',
                 'description' => 'From email address',
@@ -204,7 +204,7 @@ class SettingsSeeder extends Seeder
             ],
             [
                 'key' => 'admin_notification_emails',
-                'value' => 'admin@copower.com,sales@copower.com',
+                'value' => 'info@coopower.co.uk,sales@copower.com',
                 'group' => 'email',
                 'type' => 'string',
                 'description' => 'Admin notification emails (comma separated)',

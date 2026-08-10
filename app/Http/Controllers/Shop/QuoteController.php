@@ -695,10 +695,10 @@ class QuoteController extends Controller implements HasMiddleware
             DB::commit();
 
             // Send emails
-            Mail::to($user->email)->queue(new QuoteConfirmationMail($quote));
+            Mail::to($user->email)->send(new QuoteConfirmationMail($quote));
             
-            $adminEmails = SettingsService::get('admin_notification_emails', 'admin@copower.com');
-            Mail::to(explode(',', $adminEmails))->queue(new NewQuoteNotificationMail($quote));
+            $adminEmails = config('b2b.admin_notification_emails', 'admin@copower.com');
+            Mail::to(explode(',', $adminEmails))->send(new NewQuoteNotificationMail($quote));
 
             return redirect()
                 ->route('quote.confirmation', $quote)

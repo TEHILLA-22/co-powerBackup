@@ -95,10 +95,51 @@
             <form method="POST" action="{{ route('auth.verify-otp.resend') }}" class="mt-6 text-center">
                 @csrf
                 <p class="text-xs text-gray-500">Haven't received it?</p>
-                <button type="submit" class="mt-1 text-sm font-medium text-copower-banner hover:text-copower-dark transition">
+                <button type="submit" id="resendBtn"
+                        class="mt-1 text-sm font-medium text-copower-banner hover:text-copower-dark transition disabled:text-gray-400 disabled:cursor-not-allowed">
                     Resend verification code
                 </button>
             </form>
+            <script>
+                (function () {
+                    var btn = document.getElementById('resendBtn');
+                    if (!btn) return;
+                    var COOLDOWN = 60;
+                    var key = 'otp_resend_cooldown';
+                    var stored = parseInt(sessionStorage.getItem(key) || '0', 10);
+                    var remaining = stored ? Math.max(0, stored - Math.floor(Date.now() / 1000)) : 0;
+
+                    function tick() {
+                        if (remaining <= 0) {
+                            btn.disabled = false;
+                            btn.textContent = 'Resend verification code';
+                            sessionStorage.removeItem(key);
+                            return;
+                        }
+                        btn.disabled = true;
+                        btn.textContent = 'Resend in ' + remaining + 's';
+                        remaining--;
+                        if (remaining <= 0) {
+                            sessionStorage.removeItem(key);
+                            btn.disabled = false;
+                            btn.textContent = 'Resend verification code';
+                        } else {
+                            setTimeout(tick, 1000);
+                        }
+                    }
+
+                    if (remaining > 0) {
+                        tick();
+                    }
+
+                    btn.addEventListener('click', function () {
+                        if (remaining > 0) return;
+                        sessionStorage.setItem(key, Math.floor(Date.now() / 1000) + COOLDOWN);
+                        remaining = COOLDOWN;
+                        tick();
+                    });
+                })();
+            </script>
         </div>
 
         <!-- Footer -->

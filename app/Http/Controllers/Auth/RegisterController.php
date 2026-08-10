@@ -75,14 +75,8 @@ class RegisterController extends Controller
 
             DB::commit();
 
-            // Generate OTP and send verification email
-            $otp = $user->generateOtp();
-            Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
-
-            // Notify admins about the new registration
-            $adminEmails = (string) config('b2b.admin_notification_emails', 'admin@copower.com');
-            $adminEmails = array_map('trim', explode(',', $adminEmails));
-            Mail::to($adminEmails)->queue(new NewRegistrationNotificationMail($user));
+            // Log the user in before sending mail so a mail failure never strands the account
+            auth()->login($user);
 
             AuditLog::log(
                 'register',
@@ -93,13 +87,38 @@ class RegisterController extends Controller
                 'New customer registered'
             );
 
-            // Log the user in and send them to OTP verification
-            auth()->login($user);
-
             event(new Registered($user));
 
+            // Generate OTP and send verification email (account already created + logged in)
+            $otp = $user->generateOtp();
+            try {
+                Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
+                $mailStatus = 'success';
+                $mailMessage = 'Your account has been created. Please enter the 6-digit code sent to your email.';
+            } catch (\Throwable $e) {
+                \Log::error('Registration OTP email failed: ' . $e->getMessage(), [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                $mailStatus = 'warning';
+                $mailMessage = 'Your account has been created, but we could not send the verification email right now. Please use "Resend verification code" to get your OTP.';
+            }
+
+            // Notify admins about the new registration (best-effort, never blocks signup)
+            try {
+                $adminEmails = (string) config('b2b.admin_notification_emails', 'info@coopower.co.uk');
+                $adminEmails = array_map('trim', explode(',', $adminEmails));
+                Mail::to($adminEmails)->send(new NewRegistrationNotificationMail($user));
+            } catch (\Throwable $e) {
+                \Log::error('Admin registration notification email failed: ' . $e->getMessage(), [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+            }
+
             return redirect()->route('auth.verify-otp')
-                ->with('success', 'Your account has been created. Please enter the 6-digit code sent to your email.');
+                ->with($mailStatus, $mailMessage);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -189,8 +208,26 @@ class RegisterController extends Controller
             return redirect()->route('customer.products');
         }
 
+        // Rate limit: allow one resend per 60 seconds
+        $tooMany = \Illuminate\Support\Facades\RateLimiter::tooManyAttempts('otp-resend:' . $user->id, 1);
+        if ($tooMany) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn('otp-resend:' . $user->id);
+            return back()->withErrors(['otp_code' => "Please wait {$seconds} seconds before requesting another code."]);
+        }
+
         $otp = $user->generateOtp();
-        Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
+
+        try {
+            Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
+            \Illuminate\Support\Facades\RateLimiter::hit('otp-resend:' . $user->id, 60);
+        } catch (\Throwable $e) {
+            \Log::error('OTP resend email failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->withErrors(['otp_code' => 'We could not send the code right now. Please try again in a moment.']);
+        }
 
         return back()->with('success', 'A new verification code has been sent to your email.');
     }

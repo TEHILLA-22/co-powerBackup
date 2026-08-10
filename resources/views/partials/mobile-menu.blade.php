@@ -35,6 +35,19 @@
             <a href="{{ route('customer.products') }}" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
                 <i class="fas fa-store mr-3"></i> All Products
             </a>
+            @if(isset($navCategories) && $navCategories->count())
+                <div class="px-4 py-2">
+                    <p class="text-xs font-bold text-copower-dark uppercase tracking-wide mb-2">Categories</p>
+                    <div class="space-y-1">
+                        @foreach($navCategories as $parent)
+                            <a href="{{ route('customer.products') }}?category={{ $parent->slug }}" class="flex items-center justify-between px-2 py-1.5 text-gray-700 hover:bg-copower-gray rounded-md transition text-sm">
+                                <span>{{ $parent->name }}</span>
+                                <span class="bg-copower-banner text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $parent->products_count }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
             <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
                 <i class="fas fa-tags mr-3"></i> All Brands
             </a>

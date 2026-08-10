@@ -61,7 +61,7 @@ class AdminRegistrationController extends Controller
                     ]);
 
                     // Send OTP email
-                    Mail::to($existingAdmin->email)->queue(new AdminOtpMail($existingAdmin, $otp));
+                    Mail::to($existingAdmin->email)->send(new AdminOtpMail($existingAdmin, $otp));
 
                     DB::commit();
 
@@ -100,7 +100,7 @@ class AdminRegistrationController extends Controller
             ]);
 
             // Send OTP email
-            Mail::to($admin->email)->queue(new AdminOtpMail($admin, $otp));
+            Mail::to($admin->email)->send(new AdminOtpMail($admin, $otp));
 
             DB::commit();
 
@@ -142,7 +142,7 @@ class AdminRegistrationController extends Controller
                         'admin_otp_expires' => $otpExpiresAt,
                     ]);
 
-                    Mail::to($admin->email)->queue(new AdminOtpMail($admin, $otp));
+                    Mail::to($admin->email)->send(new AdminOtpMail($admin, $otp));
 
                     return redirect()->route('admin.verify')
                         ->with('success', 'A new OTP has been sent to your email.');
@@ -199,7 +199,7 @@ class AdminRegistrationController extends Controller
                     'admin_otp_expires' => $otpExpiresAt,
                 ]);
 
-                Mail::to($admin->email)->queue(new AdminOtpMail($admin, $otp));
+                Mail::to($admin->email)->send(new AdminOtpMail($admin, $otp));
 
                 return back()
                     ->with('warning', 'OTP has expired. A new OTP has been sent to your email.')
@@ -230,7 +230,7 @@ class AdminRegistrationController extends Controller
 
                 $admin = Admin::where('email', $adminEmail)->first();
                 if ($admin) {
-                    Mail::to($admin->email)->queue(new AdminOtpMail($admin, $otp));
+                    Mail::to($admin->email)->send(new AdminOtpMail($admin, $otp));
                 }
 
                 return back()
@@ -276,7 +276,7 @@ class AdminRegistrationController extends Controller
         );
 
         // Send welcome email
-        Mail::to($admin->email)->queue(new AdminWelcomeMail($admin));
+        Mail::to($admin->email)->send(new AdminWelcomeMail($admin));
 
         // Clear session
         session()->forget(['admin_otp', 'admin_otp_expires', 'admin_register_email', 'admin_otp_attempts']);
@@ -336,7 +336,7 @@ class AdminRegistrationController extends Controller
         ]);
 
         // Send OTP email
-        Mail::to($admin->email)->queue(new AdminOtpMail($admin, $otp));
+        Mail::to($admin->email)->send(new AdminOtpMail($admin, $otp));
 
         return back()->with('success', 'New OTP sent to your email.');
     }

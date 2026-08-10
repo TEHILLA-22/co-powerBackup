@@ -19,14 +19,16 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-                @foreach($categories ?? [] as $category)
-                <a href="{{ route('customer.products') }}?category={{ $category->slug }}" class="group">
+                @foreach($navCategories ?? [] as $category)
+                <a href="{{ route('customer.products') }}?category={{ $category->slug }}" class="group relative">
                     <div class="bg-copower-gray rounded-xl p-6 text-center hover:shadow-lg transition transform hover:-translate-y-1 duration-300 border border-transparent hover:border-copower-banner/20">
                         <div class="w-16 h-16 mx-auto mb-4 bg-copower-dark/10 rounded-full flex items-center justify-center group-hover:bg-copower-dark group-hover:text-white transition">
                             <i class="{{ $category->icon ?? 'fas fa-box' }} text-2xl text-copower-dark group-hover:text-white transition"></i>
                         </div>
                         <h3 class="font-semibold text-copower-dark text-sm">{{ $category->name }}</h3>
-                        <p class="text-xs text-gray-500 mt-1">{{ $category->products_count ?? 0 }} products</p>
+                        <span class="inline-block mt-2 bg-copower-banner text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {{ $category->products_count ?? 0 }}
+                        </span>
                     </div>
                 </a>
                 @endforeach

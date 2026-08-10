@@ -272,17 +272,17 @@ class CheckoutController extends Controller implements HasMiddleware
 
             DB::commit();
 
-            // Send emails (queued)
+            // Send emails
             // 1. Customer confirmation
-            Mail::to($validated['email'])->queue(new OrderConfirmationMail($order, $user));
+            Mail::to($validated['email'])->send(new OrderConfirmationMail($order, $user));
 
             // 2. Order processing notification
-            Mail::to($validated['email'])->queue(new OrderProcessingMail($order, $user));
+            Mail::to($validated['email'])->send(new OrderProcessingMail($order, $user));
 
             // 3. Admin notification
-            $adminEmails = SettingsService::get('admin_notification_emails', 'admin@copower.com');
+            $adminEmails = config('b2b.admin_notification_emails', 'admin@copower.com');
             $adminEmails = array_map('trim', explode(',', $adminEmails));
-            Mail::to($adminEmails)->queue(new NewOrderNotificationMail($order, $user));
+            Mail::to($adminEmails)->send(new NewOrderNotificationMail($order, $user));
 
             return redirect()
                 ->route('order.confirmation', $order)

@@ -115,11 +115,19 @@ class ProductController extends Controller implements HasMiddleware
             $this->enhanceProduct($product, $user);
         }
 
-        // Get categories for sidebar
+        // Get categories for sidebar (parent counts roll up children)
         $categories = Category::where('is_active', true)
             ->parents()
+            ->with(['children' => function ($q) {
+                $q->where('is_active', true)->withCount('products');
+            }])
             ->withCount('products')
-            ->get();
+            ->orderBy('display_order')
+            ->get()
+            ->map(function ($parent) {
+                $parent->products_count = $parent->products_count + $parent->children->sum('products_count');
+                return $parent;
+            });
 
         // Get brands for filter
         $brands = Product::where('is_active', true)

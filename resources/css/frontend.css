@@ -18,6 +18,11 @@ body {
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
 }
 
+/* Alpine x-cloak helper */
+[x-cloak] {
+    display: none !important;
+}
+
 /* Category card hover */
 .category-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;

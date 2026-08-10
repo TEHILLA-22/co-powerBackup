@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Mail\OtpVerificationMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 
 class EmailVerificationController extends Controller
 {
@@ -19,13 +20,21 @@ class EmailVerificationController extends Controller
         
         // If already verified, redirect
         if ($user->is_verified) {
-            return redirect()->route('customer.dashboard');
+            return redirect()->route('customer.products');
         }
         
         // Generate OTP if not exists or expired
         if (!$user->otp_code || ($user->otp_expires_at && now()->greaterThan($user->otp_expires_at))) {
             $otp = $user->generateOtp();
-            Mail::to($user->email)->queue(new OtpVerificationMail($user, $otp));
+            try {
+                Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
+            } catch (\Throwable $e) {
+                \Log::error('OTP email failed on verify page: ' . $e->getMessage(), [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+                session()->flash('warning', 'We could not send the verification code right now. Please use the resend button below.');
+            }
         }
         
         return view('auth.verify-otp');
@@ -44,7 +53,7 @@ class EmailVerificationController extends Controller
         $result = $user->verifyOtp($validated['otp_code']);
 
         if ($result['success']) {
-            return redirect()->route('customer.dashboard')
+            return redirect()->route('customer.products')
                 ->with('success', 'Email verified successfully!');
         }
 
@@ -60,7 +69,7 @@ class EmailVerificationController extends Controller
         $user = auth()->user();
 
         if ($user->is_verified) {
-            return redirect()->route('customer.dashboard');
+            return redirect()->route('customer.products');
         }
 
         // Check if too many attempts
@@ -69,8 +78,23 @@ class EmailVerificationController extends Controller
             return back()->withErrors(['otp' => 'Too many OTP requests. Please try again later.']);
         }
 
+        // Rate limit: allow one resend per 60 seconds
+        if (RateLimiter::tooManyAttempts('otp-resend:' . $user->id, 1)) {
+            $seconds = RateLimiter::availableIn('otp-resend:' . $user->id);
+            return back()->withErrors(['otp' => "Please wait {$seconds} seconds before requesting another code."]);
+        }
+
         $otp = $user->generateOtp();
-        Mail::to($user->email)->queue(new OtpVerificationMail($user, $otp));
+        try {
+            Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
+            RateLimiter::hit('otp-resend:' . $user->id, 60);
+        } catch (\Throwable $e) {
+            \Log::error('OTP resend email failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+            return back()->withErrors(['otp' => 'We could not send the code right now. Please try again in a moment.']);
+        }
 
         return back()->with('success', 'New OTP sent to your email.');
     }

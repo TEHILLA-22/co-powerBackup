@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Register - Copower Wholesale</title>
-    
+
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -30,7 +30,7 @@
             }
         }
     </script>
-    
+
     <style>
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
@@ -86,7 +86,7 @@
             background-clip: text;
         }
         .bg-grid-pattern {
-            background-image: 
+            background-image:
                 linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
@@ -120,17 +120,17 @@
 <body class="font-sans antialiased overflow-hidden h-screen bg-copower-dark">
 
     <div class="flex h-screen">
-        
+
         <!-- ==================== LEFT PANEL - BRAND SHOWCASE ==================== -->
         <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-copower-dark">
             <!-- Background Pattern -->
             <div class="absolute inset-0 bg-grid-pattern"></div>
             <div class="absolute inset-0 bg-gradient-radial"></div>
-            
+
             <!-- Decorative Elements -->
             <div class="absolute top-20 right-20 w-64 h-64 bg-copower-banner/10 rounded-full blur-3xl animate-float"></div>
             <div class="absolute bottom-20 left-20 w-96 h-96 bg-copower-banner/5 rounded-full blur-2xl" style="animation: float 8s ease-in-out infinite reverse;"></div>
-            
+
             <!-- Brand Content -->
             <div class="relative z-10 flex flex-col justify-center items-center w-full px-12 text-white">
                 <!-- Logo -->
@@ -140,7 +140,7 @@
                         <span class="text-sm font-extrabold tracking-[0.3em] text-copower-banner uppercase mt-1">Wholesale</span>
                     </div>
                 </div>
-                
+
                 <!-- Tagline -->
                 <div class="text-center animate-slide-in delay-200">
                     <h1 class="text-3xl font-bold leading-tight mb-4">
@@ -151,7 +151,7 @@
                         Access exclusive pricing and bulk orders.
                     </p>
                 </div>
-                
+
                 <!-- Trust Badges -->
                 <div class="grid grid-cols-2 gap-4 mt-12 w-full max-w-md animate-slide-in delay-300">
                     <div class="bg-white/5 backdrop-blur-sm rounded-xl p-4 text-center border border-white/10 hover:bg-white/10 transition">
@@ -188,17 +188,17 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Bottom Decorative -->
             <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-copower-dark to-transparent"></div>
         </div>
-        
+
         <!-- ==================== RIGHT PANEL - REGISTRATION FORM ==================== -->
         <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 py-8 lg:px-12 relative overflow-y-auto">
             <!-- Decorative Background Elements -->
             <div class="absolute top-0 right-0 w-64 h-64 bg-copower-banner/5 rounded-full blur-2xl"></div>
             <div class="absolute bottom-0 left-0 w-48 h-48 bg-copower-dark/5 rounded-full blur-2xl"></div>
-            
+
             <!-- Mobile Logo -->
             <div class="lg:hidden absolute top-4 left-1/2 transform -translate-x-1/2">
                 <div class="flex flex-col items-center">
@@ -206,16 +206,16 @@
                     <span class="text-[10px] font-extrabold tracking-[0.3em] text-copower-banner uppercase">Wholesale</span>
                 </div>
             </div>
-            
+
             <!-- Form Container -->
-            <div class="relative z-10 w-full max-w-md animate-fade-in-up mt-12 lg:mt-0">
-                
+            <div class="relative z-10 w-full max-w-md animate-fade-in-up mt-12 lg:mt-[1000px]">
+
                 <!-- Header -->
                 <div class="mb-6 text-center lg:text-left">
                     <h2 class="text-2xl font-bold text-copower-dark">Create An Online Account</h2>
                     <p class="text-sm text-gray-500 mt-1">Join Copower Wholesale today</p>
                 </div>
-                
+
                 <!-- Errors -->
                 @if($errors->any())
                     <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
@@ -231,7 +231,7 @@
                         </div>
                     </div>
                 @endif
-                
+
                 <!-- Success/Warning -->
                 @if(session('success'))
                     <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
@@ -243,11 +243,11 @@
                         <p class="text-sm text-yellow-600">{{ session('warning') }}</p>
                     </div>
                 @endif
-                
+
                 <!-- Registration Form -->
                 <form method="POST" action="{{ route('register') }}" class="space-y-6">
                     @csrf
-                    
+
                     <!-- ===== PERSONAL INFORMATION ===== -->
                     <div>
                         <h3 class="text-sm font-semibold text-copower-dark uppercase tracking-wider mb-4">
@@ -258,9 +258,9 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     First Name <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" 
-                                       name="first_name" 
-                                       value="{{ old('first_name') }}" 
+                                <input type="text"
+                                       name="first_name"
+                                       value="{{ old('first_name') }}"
                                        required
                                        placeholder="John"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -269,9 +269,9 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     Last Name <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" 
-                                       name="last_name" 
-                                       value="{{ old('last_name') }}" 
+                                <input type="text"
+                                       name="last_name"
+                                       value="{{ old('last_name') }}"
                                        required
                                        placeholder="Smith"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -281,15 +281,15 @@
                             <label class="block text-sm font-medium text-copower-dark mb-1">
                                 Email Address <span class="text-red-500">*</span>
                             </label>
-                            <input type="email" 
-                                   name="email" 
-                                   value="{{ old('email') }}" 
+                            <input type="email"
+                                   name="email"
+                                   value="{{ old('email') }}"
                                    required
                                    placeholder="you@company.com"
                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
                         </div>
                     </div>
-                    
+
                     <!-- ===== COMPANY INFORMATION ===== -->
                     <div class="border-t border-gray-100 pt-6">
                         <h3 class="text-sm font-semibold text-copower-dark uppercase tracking-wider mb-4">
@@ -299,9 +299,9 @@
                             <label class="block text-sm font-medium text-copower-dark mb-1">
                                 Company Name <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                   name="company_name" 
-                                   value="{{ old('company_name') }}" 
+                            <input type="text"
+                                   name="company_name"
+                                   value="{{ old('company_name') }}"
                                    required
                                    placeholder="Your Company Ltd"
                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -310,8 +310,8 @@
                             <label class="block text-sm font-medium text-copower-dark mb-1">
                                 Company Website
                             </label>
-                            <input type="url" 
-                                   name="company_website" 
+                            <input type="url"
+                                   name="company_website"
                                    value="{{ old('company_website') }}"
                                    placeholder="https://yourcompany.com"
                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -321,8 +321,8 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     Registration Number
                                 </label>
-                                <input type="text" 
-                                       name="company_registration_number" 
+                                <input type="text"
+                                       name="company_registration_number"
                                        value="{{ old('company_registration_number') }}"
                                        placeholder="12345678"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -331,33 +331,34 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     VAT Number
                                 </label>
-                                <input type="text" 
-                                       name="vat_number" 
+                                <input type="text"
+                                       name="vat_number"
                                        value="{{ old('vat_number') }}"
                                        placeholder="GB123456789"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- ===== PHONE NUMBER ===== -->
+
+                    <!-- ===== MOBILE NUMBER ===== -->
                     <div class="border-t border-gray-100 pt-6">
                         <h3 class="text-sm font-semibold text-copower-dark uppercase tracking-wider mb-4">
-                            Phone Number
+                            Contact Number
                         </h3>
                         <div>
                             <label class="block text-sm font-medium text-copower-dark mb-1">
-                                Phone Number <span class="text-red-500">*</span>
+                                Mobile Number <span class="text-red-500">*</span>
                             </label>
-                            <input type="tel" 
-                                   name="phone" 
-                                   value="{{ old('phone') }}" 
+                            <input type="tel"
+                                   name="mobile"
+                                   value="{{ old('mobile') }}"
                                    required
-                                   placeholder="+44 20 1234 5678"
+                                   placeholder="+44 7700 900123"
                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
                         </div>
+                        <input type="hidden" name="phone" value="{{ old('phone') }}">
                     </div>
-                    
+
                     <!-- ===== PASSWORD ===== -->
                     <div class="border-t border-gray-100 pt-6">
                         <h3 class="text-sm font-semibold text-copower-dark uppercase tracking-wider mb-4">
@@ -368,8 +369,8 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     Password <span class="text-red-500">*</span>
                                 </label>
-                                <input type="password" 
-                                       name="password" 
+                                <input type="password"
+                                       name="password"
                                        required
                                        placeholder="••••••••"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -379,15 +380,15 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     Confirm Password <span class="text-red-500">*</span>
                                 </label>
-                                <input type="password" 
-                                       name="password_confirmation" 
+                                <input type="password"
+                                       name="password_confirmation"
                                        required
                                        placeholder="••••••••"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- ===== ADDRESS ===== -->
                     <div class="border-t border-gray-100 pt-6">
                         <h3 class="text-sm font-semibold text-copower-dark uppercase tracking-wider mb-4">
@@ -397,9 +398,9 @@
                             <label class="block text-sm font-medium text-copower-dark mb-1">
                                 Street Address <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" 
-                                   name="address_line_1" 
-                                   value="{{ old('address_line_1') }}" 
+                            <input type="text"
+                                   name="address_line_1"
+                                   value="{{ old('address_line_1') }}"
                                    required
                                    placeholder="123 Business Street"
                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -408,8 +409,8 @@
                             <label class="block text-sm font-medium text-copower-dark mb-1">
                                 Address Line 2
                             </label>
-                            <input type="text" 
-                                   name="address_line_2" 
+                            <input type="text"
+                                   name="address_line_2"
                                    value="{{ old('address_line_2') }}"
                                    placeholder="Suite, Floor, etc."
                                    class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -419,9 +420,9 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     City <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" 
-                                       name="city" 
-                                       value="{{ old('city') }}" 
+                                <input type="text"
+                                       name="city"
+                                       value="{{ old('city') }}"
                                        required
                                        placeholder="London"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -430,8 +431,8 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     State/County
                                 </label>
-                                <input type="text" 
-                                       name="state_province" 
+                                <input type="text"
+                                       name="state_province"
                                        value="{{ old('state_province') }}"
                                        placeholder="Greater London"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -442,9 +443,9 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     Postal Code <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" 
-                                       name="postal_code" 
-                                       value="{{ old('postal_code') }}" 
+                                <input type="text"
+                                       name="postal_code"
+                                       value="{{ old('postal_code') }}"
                                        required
                                        placeholder="EC1A 1BB"
                                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
@@ -453,7 +454,7 @@
                                 <label class="block text-sm font-medium text-copower-dark mb-1">
                                     Country <span class="text-red-500">*</span>
                                 </label>
-                                <select name="country_code" 
+                                <select name="country_code"
                                         required
                                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-copower-banner/20 focus:border-copower-banner transition-all duration-200 bg-gray-50 hover:bg-white">
                                     <option value="">Select Country</option>
@@ -466,26 +467,26 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- ===== TERMS ===== -->
                     <div class="border-t border-gray-100 pt-6">
                         <div class="flex items-start">
-                            <input type="checkbox" 
-                                   name="terms" 
-                                   id="terms" 
+                            <input type="checkbox"
+                                   name="terms"
+                                   id="terms"
                                    required
                                    class="mt-1 h-4 w-4 text-copower-banner border-gray-300 rounded focus:ring-copower-banner/20">
                             <label for="terms" class="ml-2 text-sm text-gray-600">
-                                I agree to the 
-                                <a href="#" class="text-copower-banner hover:underline font-medium">Terms & Conditions</a> 
-                                and 
+                                I agree to the
+                                <a href="#" class="text-copower-banner hover:underline font-medium">Terms & Conditions</a>
+                                and
                                 <a href="#" class="text-copower-banner hover:underline font-medium">Privacy Policy</a>
                             </label>
                         </div>
                     </div>
-                    
+
                     <!-- ===== SUBMIT ===== -->
-                    <button type="submit" 
+                    <button type="submit"
                             class="w-full flex items-center justify-center py-3.5 px-4 bg-copower-dark text-white rounded-xl font-semibold text-sm hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-copower-banner transition-all duration-200 hover-lift group">
                         <span>Create Account</span>
                         <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -493,11 +494,11 @@
                         </svg>
                     </button>
                 </form>
-                
+
                 <!-- ===== LOGIN LINK ===== -->
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">
-                        Already have an account? 
+                        Already have an account?
                         <a href="{{ route('login') }}" class="font-medium text-copower-banner hover:text-copower-dark transition">
                             Sign in
                         </a>
@@ -508,7 +509,7 @@
                 </div>
             </div>
         </div>
-        
+
     </div>
 </body>
 </html>

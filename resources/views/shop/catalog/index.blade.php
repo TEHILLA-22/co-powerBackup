@@ -8,7 +8,7 @@
     <div class="max-w-7xl mx-auto px-6">
         <!-- Breadcrumb -->
         <nav class="text-sm mb-6">
-            <ol class="list-none p-0 inline-flex items-center space-x-2">
+            <ol class="list-none p-0 inline-flex items-center space-x-2 flex-wrap">
                 <li><a href="{{ route('home') }}" class="text-copower-dark hover:text-copower-banner">Home</a></li>
                 <li><span class="text-gray-400">/</span></li>
                 <li class="text-copower-dark font-medium">
@@ -75,10 +75,10 @@
                                     <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                                 @endif
                             @endforeach
-                            <input type="text" 
-                                   name="search" 
+                            <input type="text"
+                                   name="search"
                                    value="{{ $filters['search'] }}"
-                                   placeholder="Search products..." 
+                                   placeholder="Search products..."
                                    class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-copower-banner focus:border-transparent">
                             <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-copower-dark hover:text-copower-banner">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,14 +93,14 @@
                         <h4 class="font-semibold text-sm text-gray-700 mb-2">Categories</h4>
                         <ul class="space-y-1">
                             <li>
-                                <a href="{{ route('customer.products', array_filter(array_merge($filters, ['category' => null]))) }}" 
+                                <a href="{{ route('customer.products', array_filter(array_merge($filters, ['category' => null]))) }}"
                                    class="text-sm {{ !$filters['category'] ? 'text-copower-banner font-semibold' : 'text-gray-600 hover:text-copower-banner' }} transition">
                                     All Categories
                                 </a>
                             </li>
                             @foreach($categories as $category)
                                 <li>
-                                    <a href="{{ route('customer.products', array_filter(array_merge($filters, ['category' => $category->slug]))) }}" 
+                                    <a href="{{ route('customer.products', array_filter(array_merge($filters, ['category' => $category->slug]))) }}"
                                        class="text-sm {{ $filters['category'] == $category->slug ? 'text-copower-banner font-semibold' : 'text-gray-600 hover:text-copower-banner' }} transition">
                                         {{ $category->name }}
                                         <span class="text-xs text-gray-400">({{ $category->products_count }})</span>
@@ -114,7 +114,7 @@
                     @if($brands->isNotEmpty())
                     <div class="mb-6">
                         <h4 class="font-semibold text-sm text-gray-700 mb-2">Brands</h4>
-                        <select name="brand" 
+                        <select name="brand"
                                 onchange="window.location.href='{{ route('customer.products') }}?' + new URLSearchParams({...{{ json_encode(array_filter($filters)) }}, brand: this.value})"
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-copower-banner focus:border-transparent">
                             <option value="">All Brands</option>
@@ -131,13 +131,13 @@
                     <div class="mb-6">
                         <h4 class="font-semibold text-sm text-gray-700 mb-2">Price Range</h4>
                         <div class="flex space-x-2">
-                            <input type="number" 
-                                   name="min_price" 
+                            <input type="number"
+                                   name="min_price"
                                    value="{{ $filters['min_price'] }}"
                                    placeholder="Min"
                                    class="w-1/2 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-copower-banner focus:border-transparent">
-                            <input type="number" 
-                                   name="max_price" 
+                            <input type="number"
+                                   name="max_price"
                                    value="{{ $filters['max_price'] }}"
                                    placeholder="Max"
                                    class="w-1/2 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-copower-banner focus:border-transparent">
@@ -147,8 +147,8 @@
                     <!-- Stock Filter -->
                     <div class="mb-6">
                         <label class="flex items-center space-x-2 text-sm text-gray-600">
-                            <input type="checkbox" 
-                                   name="in_stock" 
+                            <input type="checkbox"
+                                   name="in_stock"
                                    value="1"
                                    {{ $filters['in_stock'] ? 'checked' : '' }}
                                    onchange="window.location.href='{{ route('customer.products') }}?' + new URLSearchParams({...{{ json_encode(array_filter($filters)) }}, in_stock: this.checked ? 1 : ''})">
@@ -157,7 +157,7 @@
                     </div>
 
                     <!-- Apply Filters Button -->
-                    <button type="button" 
+                    <button type="button"
                             onclick="applyFilters()"
                             class="w-full bg-copower-dark text-white py-2 rounded-lg hover:bg-opacity-90 transition font-medium text-sm">
                         Apply Filters
@@ -209,21 +209,21 @@ document.getElementById('sortSelect')?.addEventListener('change', function() {
 // Apply filters
 function applyFilters() {
     const params = new URLSearchParams(window.location.search);
-    
+
     // Get filter values
     const minPrice = document.querySelector('input[name="min_price"]');
     const maxPrice = document.querySelector('input[name="max_price"]');
     const inStock = document.querySelector('input[name="in_stock"]');
-    
+
     if (minPrice.value) params.set('min_price', minPrice.value);
     else params.delete('min_price');
-    
+
     if (maxPrice.value) params.set('max_price', maxPrice.value);
     else params.delete('max_price');
-    
+
     if (inStock.checked) params.set('in_stock', '1');
     else params.delete('in_stock');
-    
+
     window.location.href = window.location.pathname + '?' + params.toString();
 }
 </script>

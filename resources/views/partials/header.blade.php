@@ -102,7 +102,7 @@
     </div>
 
     <!-- 3. Main Navigation Bar (desktop only) -->
-    <nav class="hidden md:block border-y border-gray-200 bg-white">
+    <nav class="hidden md:block border-y border-gray-200 bg-white group relative">
         <div class="max-w-7xl mx-auto px-6 flex items-center space-x-8 text-sm font-bold text-copower-dark py-3 overflow-x-auto">
             <a href="{{ route('customer.products') }}" class="flex items-center space-x-1 hover:text-copower-banner whitespace-nowrap">
                 <span>All Products</span>
@@ -123,6 +123,34 @@
                 <span>How To Order</span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
+        </div>
+
+        <!-- Mega Menu Panel -->
+        <div class="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-150 absolute top-full left-0 right-0 z-50 bg-white shadow-2xl border-t border-gray-100">
+            <div class="max-w-7xl mx-auto px-6 py-8">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-8 gap-y-6">
+                    @foreach($navCategories ?? [] as $parent)
+                        <div>
+                            <a href="{{ route('customer.products') }}?category={{ $parent->slug }}" class="flex items-center justify-between font-bold text-copower-dark hover:text-copower-banner transition">
+                                <span class="text-xs uppercase tracking-wide">{{ $parent->name }}</span>
+                                <span class="ml-2 bg-copower-banner text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">{{ $parent->products_count }}</span>
+                            </a>
+                            @if($parent->children->count())
+                                <ul class="mt-3 space-y-1.5 border-l border-gray-100 pl-3">
+                                    @foreach($parent->children as $child)
+                                        <li>
+                                            <a href="{{ route('customer.products') }}?category={{ $child->slug }}" class="flex items-center justify-between text-xs text-gray-600 hover:text-copower-banner transition">
+                                                <span class="truncate">{{ $child->name }}</span>
+                                                <span class="ml-2 text-[10px] text-gray-400 font-semibold shrink-0">{{ $child->products_count }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
         </div>
     </nav>
 </header>

@@ -275,8 +275,8 @@ class AdminRegistrationController extends Controller
             "Admin {$admin->full_name} registered and verified"
         );
 
-        // Send welcome email
-        Mail::to($admin->email)->send(new AdminWelcomeMail($admin));
+        // Send welcome email (queued - non-critical background notification)
+        Mail::to($admin->email)->queue(new AdminWelcomeMail($admin));
 
         // Clear session
         session()->forget(['admin_otp', 'admin_otp_expires', 'admin_register_email', 'admin_otp_attempts']);

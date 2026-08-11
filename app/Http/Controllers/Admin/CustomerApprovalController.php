@@ -95,7 +95,7 @@ class CustomerApprovalController extends Controller implements HasMiddleware
                 'Customer verified by ' . $admin->full_name . ($validated['notes'] ? '. Notes: ' . $validated['notes'] : '')
             );
 
-            Mail::to($user->email)->send(new AccountApprovedMail($user));
+            Mail::to($user->email)->queue(new AccountApprovedMail($user));
 
             Cache::forget('admin.pending_count');
 
@@ -136,7 +136,7 @@ class CustomerApprovalController extends Controller implements HasMiddleware
                 'Customer deactivated by ' . $admin->full_name . '. Reason: ' . $validated['rejection_reason']
             );
 
-            Mail::to($user->email)->send(new AccountRejectedMail($user, $validated['rejection_reason']));
+            Mail::to($user->email)->queue(new AccountRejectedMail($user, $validated['rejection_reason']));
 
             Cache::forget('admin.pending_count');
 
@@ -181,7 +181,7 @@ class CustomerApprovalController extends Controller implements HasMiddleware
                         'customer_tier_id' => $validated['customer_tier_id'],
                     ]);
 
-                    Mail::to($user->email)->send(new AccountApprovedMail($user));
+                    Mail::to($user->email)->queue(new AccountApprovedMail($user));
 
                     $count++;
                 } catch (\Exception $e) {

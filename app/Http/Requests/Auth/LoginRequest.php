@@ -11,6 +11,15 @@ class LoginRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->has('remember')) {
+            $this->merge([
+                'remember' => in_array($this->input('remember'), ['on', '1', 'true', 1, true], true),
+            ]);
+        }
+    }
+
     public function rules()
     {
         return [

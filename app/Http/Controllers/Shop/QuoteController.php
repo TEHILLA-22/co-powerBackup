@@ -10,6 +10,7 @@ use App\Models\AuditLog;
 use App\Mail\QuoteConfirmationMail;
 use App\Mail\NewQuoteNotificationMail;
 use App\Services\Pricing\Contracts\PricingEngineInterface;
+use App\Services\QuoteBasketService;
 use App\Services\SettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -19,15 +20,17 @@ use Illuminate\Support\Facades\Mail;
 class QuoteController extends Controller implements HasMiddleware
 {
     protected PricingEngineInterface $pricingEngine;
+    protected QuoteBasketService $quoteBasket;
 
     public static function middleware(): array
     {
         return ['auth', 'b2b.access'];
     }
 
-    public function __construct(PricingEngineInterface $pricingEngine)
+    public function __construct(PricingEngineInterface $pricingEngine, QuoteBasketService $quoteBasket)
     {
         $this->pricingEngine = $pricingEngine;
+        $this->quoteBasket = $quoteBasket;
     }
 
     /**
@@ -35,7 +38,7 @@ class QuoteController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $sessionQuote = session('quote_items', []);
+        $sessionQuote = $this->quoteBasket->items();
         
         if (empty($sessionQuote)) {
             return redirect()->route('customer.products')
@@ -98,8 +101,8 @@ class QuoteController extends Controller implements HasMiddleware
         $minimumOrderValue = SettingsService::get('minimum_order_value', 2000);
         $meetsMinimum = $subtotal >= $minimumOrderValue;
 
-        // Update session quote count
-        session(['quote_count' => count($items)]);
+        // Update quote count
+        session(['quote_count' => $this->quoteBasket->count()]);
 
         return view('shop.quote-summary', compact(
             'items',
@@ -129,7 +132,7 @@ class QuoteController extends Controller implements HasMiddleware
             ->when($validated['variant_type'] ?? null, function ($q, $type) {
                 return $q->where('variant_type', $type);
             })
-            ->orderByRaw("FIELD(variant_type, 'unit', 'case', 'layer', 'pallet')")
+            ->orderByRaw("CASE variant_type WHEN 'unit' THEN 1 WHEN 'case' THEN 2 WHEN 'layer' THEN 3 WHEN 'pallet' THEN 4 ELSE 5 END")
             ->first();
 
         if (! $variant) {
@@ -143,7 +146,7 @@ class QuoteController extends Controller implements HasMiddleware
             return back()->withErrors(['quantity' => "Only {$variant->stock_quantity} units available for this product."]);
         }
 
-        $quoteItems = session('quote_items', []);
+        $quoteItems = $this->quoteBasket->items();
         $key = (string) $variant->id;
 
         if (isset($quoteItems[$key])) {
@@ -159,8 +162,8 @@ class QuoteController extends Controller implements HasMiddleware
             $message = "{$product->name} added to your quote.";
         }
 
-        session(['quote_items' => $quoteItems]);
-        session(['quote_count' => count($quoteItems)]);
+        $this->quoteBasket->save($quoteItems);
+        session(['quote_count' => $this->quoteBasket->count()]);
 
         return back()->with('success', $message);
     }
@@ -177,7 +180,7 @@ class QuoteController extends Controller implements HasMiddleware
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $quoteItems = session('quote_items', []);
+        $quoteItems = $this->quoteBasket->items();
         
         if (!isset($quoteItems[$key])) {
             return response()->json(['error' => 'Item not found'], 404);
@@ -196,7 +199,7 @@ class QuoteController extends Controller implements HasMiddleware
         }
 
         $quoteItems[$key]['quantity'] = $validated['quantity'];
-        session(['quote_items' => $quoteItems]);
+        $this->quoteBasket->save($quoteItems);
 
         // Recalculate price
         $priceResult = $this->pricingEngine->calculatePrice(
@@ -218,11 +221,12 @@ class QuoteController extends Controller implements HasMiddleware
      */
     public function removeItem(Request $request, $key)
     {
-        $quoteItems = session('quote_items', []);
+        $quoteItems = $this->quoteBasket->items();
         
         if (isset($quoteItems[$key])) {
             unset($quoteItems[$key]);
-            session(['quote_items' => $quoteItems]);
+            $this->quoteBasket->save($quoteItems);
+            session(['quote_count' => $this->quoteBasket->count()]);
         }
 
         if ($request->wantsJson() || $request->isJson() || $request->isMethod('DELETE')) {
@@ -242,7 +246,8 @@ class QuoteController extends Controller implements HasMiddleware
      */
     public function clear(Request $request)
     {
-        session()->forget('quote_items');
+        $this->quoteBasket->clear();
+        session()->forget('quote_count');
 
         if ($request->wantsJson() || $request->isJson()) {
             return response()->json([
@@ -269,12 +274,12 @@ class QuoteController extends Controller implements HasMiddleware
             abort(404, 'Bulk order is currently disabled.');
         }
 
-        $sessionQuote = session('quote_items', []);
+        // Load existing quote items (if any) to show in a summary
+        $sessionQuote = $this->quoteBasket->items();
         $items = [];
         $subtotal = 0;
         $user = auth()->user();
 
-        // Load existing quote items (if any) to show in a summary
         foreach ($sessionQuote as $key => $item) {
             $variant = ProductVariant::with('product')->find($item['variant_id']);
             if ($variant) {
@@ -426,7 +431,7 @@ class QuoteController extends Controller implements HasMiddleware
         DB::beginTransaction();
 
         try {
-            $quoteItems = session('quote_items', []);
+            $quoteItems = $this->quoteBasket->items();
 
             foreach ($items as $index => $item) {
                 $identifier = $item['sku'] ?? $item['ean'];
@@ -506,7 +511,8 @@ class QuoteController extends Controller implements HasMiddleware
                 ];
             }
 
-            session(['quote_items' => $quoteItems]);
+            $this->quoteBasket->save($quoteItems);
+            session(['quote_count' => $this->quoteBasket->count()]);
 
             DB::commit();
 
@@ -601,7 +607,7 @@ class QuoteController extends Controller implements HasMiddleware
             'customer_notes' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $quoteItems = session('quote_items', []);
+        $quoteItems = $this->quoteBasket->items();
         
         if (empty($quoteItems)) {
             return redirect()
@@ -679,8 +685,9 @@ class QuoteController extends Controller implements HasMiddleware
                 'customer_notes' => $validated['customer_notes'] ?? null,
             ]);
 
-            // Clear session
-            session()->forget('quote_items');
+            // Clear basket after successful submission
+            $this->quoteBasket->clear();
+            session()->forget('quote_count');
 
             // Log
             AuditLog::log(
@@ -694,11 +701,11 @@ class QuoteController extends Controller implements HasMiddleware
 
             DB::commit();
 
-            // Send emails
-            Mail::to($user->email)->send(new QuoteConfirmationMail($quote));
+            // Send emails (queued - never block quote submission on mail delivery)
+            Mail::to($user->email)->queue(new QuoteConfirmationMail($quote));
             
             $adminEmails = config('b2b.admin_notification_emails', 'admin@copower.com');
-            Mail::to(explode(',', $adminEmails))->send(new NewQuoteNotificationMail($quote));
+            Mail::to(explode(',', $adminEmails))->queue(new NewQuoteNotificationMail($quote));
 
             return redirect()
                 ->route('quote.confirmation', $quote)
@@ -728,6 +735,41 @@ class QuoteController extends Controller implements HasMiddleware
         }
 
         return view('shop.quote-confirmation', compact('quote'));
+    }
+
+    /**
+     * Public quote tracking - look up a quote by its reference number + email.
+     */
+    public function track(Request $request)
+    {
+        $reference = trim((string) $request->query('reference', ''));
+        $email = trim((string) $request->query('email', ''));
+
+        $quote = null;
+        $searched = false;
+
+        if ($reference !== '' || $email !== '') {
+            $searched = true;
+
+            $query = Quote::query();
+
+            if ($reference !== '') {
+                $query->where('quote_number', $reference);
+            }
+
+            if ($email !== '') {
+                $query->where(function ($q) use ($email) {
+                    $q->where('customer_email', $email)
+                        ->orWhereHas('user', function ($uq) use ($email) {
+                            $uq->where('email', $email);
+                        });
+                });
+            }
+
+            $quote = $query->first();
+        }
+
+        return view('shop.quote-track', compact('quote', 'searched', 'reference', 'email'));
     }
 
     /**

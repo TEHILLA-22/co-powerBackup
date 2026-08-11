@@ -7,10 +7,12 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Address;
 use App\Models\AuditLog;
+use App\Models\ProductVariant;
 use App\Mail\OrderConfirmationMail;
 use App\Mail\NewOrderNotificationMail;
 use App\Mail\OrderProcessingMail;
 use App\Services\Pricing\Contracts\PricingEngineInterface;
+use App\Services\QuoteBasketService;
 use App\Services\SettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -21,15 +23,17 @@ use Illuminate\Support\Facades\Validator;
 class CheckoutController extends Controller implements HasMiddleware
 {
     protected PricingEngineInterface $pricingEngine;
+    protected QuoteBasketService $quoteBasket;
 
     public static function middleware(): array
     {
         return ['auth', 'b2b.access'];
     }
 
-    public function __construct(PricingEngineInterface $pricingEngine)
+    public function __construct(PricingEngineInterface $pricingEngine, QuoteBasketService $quoteBasket)
     {
         $this->pricingEngine = $pricingEngine;
+        $this->quoteBasket = $quoteBasket;
     }
 
     /**
@@ -37,7 +41,7 @@ class CheckoutController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $quoteItems = session('quote_items', []);
+        $quoteItems = $this->quoteBasket->items();
         
         if (empty($quoteItems)) {
             return redirect()->route('customer.products')
@@ -63,6 +67,11 @@ class CheckoutController extends Controller implements HasMiddleware
             $moqValidation = $variant->validateMoq($quantity, $user->customer_tier_id);
             if (!$moqValidation['valid']) {
                 $errors[] = $moqValidation['message'];
+            }
+
+            // Validate stock
+            if ($variant->stock_quantity < $quantity && !$variant->allow_backorder) {
+                $errors[] = "{$variant->product->name}: Only {$variant->stock_quantity} units available.";
             }
 
             $priceResult = $this->pricingEngine->calculatePrice(
@@ -133,7 +142,7 @@ class CheckoutController extends Controller implements HasMiddleware
             'terms' => ['required', 'accepted'],
         ]);
 
-        $quoteItems = session('quote_items', []);
+        $quoteItems = $this->quoteBasket->items();
         
         if (empty($quoteItems)) {
             return redirect()
@@ -184,6 +193,11 @@ class CheckoutController extends Controller implements HasMiddleware
                     throw new \Exception($moqValidation['message']);
                 }
 
+                // Validate stock one more time (basket may have aged since it was added)
+                if ($variant->stock_quantity < $quantity && !$variant->allow_backorder) {
+                    throw new \Exception("{$variant->product->name}: Only {$variant->stock_quantity} units available.");
+                }
+
                 $priceResult = $this->pricingEngine->calculatePrice(
                     $variant->id,
                     $quantity,
@@ -207,7 +221,7 @@ class CheckoutController extends Controller implements HasMiddleware
             }
 
             $billingAddress = null;
-            if ($validated['billing_address_id']) {
+            if (!empty($validated['billing_address_id'])) {
                 $billingAddress = $user->addresses()->find($validated['billing_address_id']);
             }
 
@@ -256,8 +270,8 @@ class CheckoutController extends Controller implements HasMiddleware
                 ]);
             }
 
-            // Clear quote session
-            session()->forget('quote_items');
+            // Clear quote basket after successful order
+            $this->quoteBasket->clear();
             session()->forget('quote_count');
 
             // Log
@@ -272,17 +286,17 @@ class CheckoutController extends Controller implements HasMiddleware
 
             DB::commit();
 
-            // Send emails
+            // Send emails (queued - never block checkout on mail delivery)
             // 1. Customer confirmation
-            Mail::to($validated['email'])->send(new OrderConfirmationMail($order, $user));
+            Mail::to($validated['email'])->queue(new OrderConfirmationMail($order, $user));
 
             // 2. Order processing notification
-            Mail::to($validated['email'])->send(new OrderProcessingMail($order, $user));
+            Mail::to($validated['email'])->queue(new OrderProcessingMail($order, $user));
 
             // 3. Admin notification
             $adminEmails = config('b2b.admin_notification_emails', 'admin@copower.com');
             $adminEmails = array_map('trim', explode(',', $adminEmails));
-            Mail::to($adminEmails)->send(new NewOrderNotificationMail($order, $user));
+            Mail::to($adminEmails)->queue(new NewOrderNotificationMail($order, $user));
 
             return redirect()
                 ->route('order.confirmation', $order)
@@ -325,9 +339,12 @@ class CheckoutController extends Controller implements HasMiddleware
         $year = date('Y');
         $month = date('m');
         
-        $lastOrder = Order::whereYear('created_at', $year)
+        // withTrashed() so soft-deleted orders still occupy their sequence number
+        $lastOrder = Order::withTrashed()
+            ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->orderBy('id', 'desc')
+            ->lockForUpdate()
             ->first();
 
         $sequence = $lastOrder ? intval(substr($lastOrder->order_number, -4)) + 1 : 1;

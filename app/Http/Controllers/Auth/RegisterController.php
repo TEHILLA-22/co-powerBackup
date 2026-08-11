@@ -105,11 +105,11 @@ class RegisterController extends Controller
                 $mailMessage = 'Your account has been created, but we could not send the verification email right now. Please use "Resend verification code" to get your OTP.';
             }
 
-            // Notify admins about the new registration (best-effort, never blocks signup)
+            // Notify admins about the new registration (queued, never blocks signup)
             try {
                 $adminEmails = (string) config('b2b.admin_notification_emails', 'info@coopower.co.uk');
                 $adminEmails = array_map('trim', explode(',', $adminEmails));
-                Mail::to($adminEmails)->send(new NewRegistrationNotificationMail($user));
+                Mail::to($adminEmails)->queue(new NewRegistrationNotificationMail($user));
             } catch (\Throwable $e) {
                 \Log::error('Admin registration notification email failed: ' . $e->getMessage(), [
                     'user_id' => $user->id,

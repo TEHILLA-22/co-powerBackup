@@ -105,7 +105,7 @@ class OrderProcessingController extends Controller implements HasMiddleware
                 "Order {$order->order_number} approved by " . $admin->full_name
             );
 
-            Mail::to($order->user->email)->send(new OrderApprovedMail($order));
+            Mail::to($order->user->email)->queue(new OrderApprovedMail($order));
 
             return redirect()
                 ->route('admin.orders.index')
@@ -140,7 +140,7 @@ class OrderProcessingController extends Controller implements HasMiddleware
                 "Order {$order->order_number} rejected by " . $admin->full_name
             );
 
-            Mail::to($order->user->email)->send(new OrderRejectedMail($order, $validated['rejection_reason']));
+            Mail::to($order->user->email)->queue(new OrderRejectedMail($order, $validated['rejection_reason']));
 
             return redirect()
                 ->route('admin.orders.index')

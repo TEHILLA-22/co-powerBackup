@@ -16,7 +16,7 @@
                 <i class="fas fa-file-invoice mr-2"></i>
                 View Quote
                 <span class="ml-2 bg-blue-400 text-white text-xs px-2 py-0.5 rounded-full">
-                    {{ session('quote_count', 0) }}
+                    {{ app(\App\Services\QuoteBasketService::class)->count() }}
                 </span>
             </a>
         </div>

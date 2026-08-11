@@ -32,6 +32,13 @@ class QuoteConfirmationMail extends Mailable
                 'quote' => $this->quote,
                 'user' => $this->quote->user,
                 'quoteUrl' => route('quote.confirmation', $this->quote),
+                'trackUrl' => route('quote.track'),
+                'trackResultUrl' => $this->quote->user
+                    ? route('quote.track', [
+                        'reference' => $this->quote->quote_number,
+                        'email' => $this->quote->user->email,
+                    ])
+                    : route('quote.track'),
             ]
         );
     }

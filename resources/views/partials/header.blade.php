@@ -83,7 +83,7 @@
                         <span class="block">Your</span>
                         <span class="block">Quote</span>
                     </div>
-                    @php $count = count(session('quote_items', [])); @endphp
+                    @php $count = auth()->check() ? app(\App\Services\QuoteBasketService::class)->count() : 0; @endphp
                     @if($count > 0)
                         <span class="absolute -top-1 -right-1 sm:right-0 bg-copower-banner text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                             {{ $count }}
@@ -102,9 +102,12 @@
     </div>
 
     <!-- 3. Main Navigation Bar (desktop only) -->
-    <nav class="hidden md:block border-y border-gray-200 bg-white group relative">
+    <nav x-data="{ megaOpen: false, megaTimer: null }" class="hidden md:block border-y border-gray-200 bg-white relative">
         <div class="max-w-7xl mx-auto px-6 flex items-center space-x-8 text-sm font-bold text-copower-dark py-3 overflow-x-auto">
-            <a href="{{ route('customer.products') }}" class="flex items-center space-x-1 hover:text-copower-banner whitespace-nowrap">
+            <a href="{{ route('customer.products') }}"
+               @mouseenter="clearTimeout(megaTimer); megaOpen = true"
+               @mouseleave="megaTimer = setTimeout(() => megaOpen = false, 150)"
+               class="flex items-center space-x-1 hover:text-copower-banner whitespace-nowrap">
                 <span>All Products</span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </a>
@@ -126,7 +129,16 @@
         </div>
 
         <!-- Mega Menu Panel -->
-        <div class="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-150 absolute top-full left-0 right-0 z-50 bg-white shadow-2xl border-t border-gray-100">
+        <div x-show="megaOpen"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @mouseenter="clearTimeout(megaTimer); megaOpen = true"
+             @mouseleave="megaTimer = setTimeout(() => megaOpen = false, 150)"
+             class="absolute top-full left-0 right-0 z-50 bg-white shadow-2xl border-t border-gray-100">
             <div class="max-w-7xl mx-auto px-6 py-8">
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-8 gap-y-6">
                     @foreach($navCategories ?? [] as $parent)

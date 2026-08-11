@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\QuoteController;
 use App\Http\Controllers\Shop\CheckoutController;
@@ -37,9 +39,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
-    Route::get('/forgot-password', function () {
-        return view('auth.forgot-password');
-    })->name('password.request');
+
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
 
 Route::middleware('auth')->group(function () {
@@ -60,6 +64,11 @@ Route::middleware(['auth', B2BAccessMiddleware::class])->prefix('customer')->nam
 });
 
 // ==================== QUOTE ROUTES ====================
+// Public quote tracking (no auth required - quote number + email lookup)
+Route::prefix('quote')->name('quote.')->group(function () {
+    Route::get('/track', [\App\Http\Controllers\Shop\QuoteController::class, 'track'])->name('track');
+});
+
 Route::middleware(['auth', B2BAccessMiddleware::class])->prefix('quote')->name('quote.')->group(function () {
     Route::get('/', [QuoteController::class, 'index'])->name('index');
     Route::post('/update/{key}', [QuoteController::class, 'updateItem'])->name('update');

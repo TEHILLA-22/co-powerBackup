@@ -52,6 +52,13 @@ class AdminLoginController extends Controller
                 ]);
         }
 
+        // Normalize checkbox value ('on' -> boolean)
+        if ($request->has('remember')) {
+            $request->merge([
+                'remember' => in_array($request->input('remember'), ['on', '1', 'true', 1, true], true),
+            ]);
+        }
+
         // Validate input with strict rules
         $validator = Validator::make($request->all(), [
             'email' => ['required', 'string', 'email', 'max:255'],

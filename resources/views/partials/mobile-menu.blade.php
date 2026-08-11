@@ -71,7 +71,7 @@
                 <a href="{{ route('quote.index') }}" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
                     <i class="fas fa-file-invoice mr-3"></i> My Quote
                     <span class="ml-2 bg-copower-banner text-white text-xs px-2 py-0.5 rounded-full">
-                        {{ count(session('quote_items', [])) }}
+                        {{ auth()->check() ? app(\App\Services\QuoteBasketService::class)->count() : 0 }}
                     </span>
                 </a>
                 <form method="POST" action="{{ route('logout') }}">

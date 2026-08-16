@@ -271,7 +271,8 @@ class QuoteController extends Controller implements HasMiddleware
     {
         // Check if bulk order is enabled via settings
         if (!SettingsService::get('enable_bulk_order', true)) {
-            abort(404, 'Bulk order is currently disabled.');
+            // Show a friendly page instead of a 404 when bulk ordering is turned off by admin
+            return view('shop.bulk-disabled');
         }
 
         // Load existing quote items (if any) to show in a summary

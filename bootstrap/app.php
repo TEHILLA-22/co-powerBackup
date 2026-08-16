@@ -3,6 +3,7 @@
 use App\Http\Middleware\AdminGuestMiddleware;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\B2BAccessMiddleware;
+use App\Http\Middleware\Idempotency;
 use App\Http\Middleware\RateLimitMiddleware;
 use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\XssProtectionMiddleware;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => AdminMiddleware::class,
             'admin.guest' => AdminGuestMiddleware::class,
             'b2b.access' => B2BAccessMiddleware::class,
+            'idempotency' => Idempotency::class,
             'rate.limit' => RateLimitMiddleware::class,
             'xss.protection' => XssProtectionMiddleware::class,
             'security.headers' => SecurityHeadersMiddleware::class,

@@ -92,7 +92,7 @@ class RegisterController extends Controller
             // Generate OTP and send verification email (account already created + logged in)
             $otp = $user->generateOtp();
             try {
-                Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
+                Mail::to($user->email)->queue(new OtpVerificationMail($user, $otp));
                 $mailStatus = 'success';
                 $mailMessage = 'Your account has been created. Please enter the 6-digit code sent to your email.';
             } catch (\Throwable $e) {
@@ -218,7 +218,7 @@ class RegisterController extends Controller
         $otp = $user->generateOtp();
 
         try {
-            Mail::to($user->email)->send(new OtpVerificationMail($user, $otp));
+            Mail::to($user->email)->queue(new OtpVerificationMail($user, $otp));
             \Illuminate\Support\Facades\RateLimiter::hit('otp-resend:' . $user->id, 60);
         } catch (\Throwable $e) {
             \Log::error('OTP resend email failed: ' . $e->getMessage(), [

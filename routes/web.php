@@ -38,7 +38,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
+    Route::post('/register', [RegisterController::class, 'register'])->middleware('idempotency');
 
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
 
 // ==================== CUSTOMER ROUTES ====================
 Route::middleware(['auth', B2BAccessMiddleware::class])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Shop\CustomerDashboardController::class, 'index'])->name('dashboard');
     Route::get('/products', [ProductController::class, 'index'])->name('products');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('product.show');
     Route::post('/products/{slug}/quote', [\App\Http\Controllers\Shop\QuoteController::class, 'add'])->name('product.add-to-quote');

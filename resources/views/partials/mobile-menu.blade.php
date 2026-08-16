@@ -68,6 +68,9 @@
         <!-- Auth Actions -->
         <div class="border-t border-gray-200 p-4 space-y-2">
             @auth
+                <a href="{{ route('customer.dashboard') }}" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
+                    <i class="fas fa-user mr-3"></i> My Account
+                </a>
                 <a href="{{ route('quote.index') }}" class="block px-4 py-3 text-gray-700 hover:bg-copower-gray rounded-lg transition">
                     <i class="fas fa-file-invoice mr-3"></i> My Quote
                     <span class="ml-2 bg-copower-banner text-white text-xs px-2 py-0.5 rounded-full">

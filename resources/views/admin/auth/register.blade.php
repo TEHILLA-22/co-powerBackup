@@ -162,7 +162,7 @@
 
                     <button type="submit" 
                             id="registerBtn"
-                            class="w-full bg-copower-dark text-white py-2.5 rounded-lg hover:bg-opacity-90 transition font-semibold">
+                            class="w-full bg-gray-700 text-white py-2.5 rounded-lg hover:bg-opacity-90 transition font-semibold">
                         Register Admin
                     </button>
                 </form>

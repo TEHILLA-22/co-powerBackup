@@ -1,40 +1,36 @@
 {{-- resources/views/emails/order-processing.blade.php --}}
 @component('mail::layout')
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <img src="{{ asset('images/copower-logo.png') }}" alt="Copower Wholesale" style="max-height: 50px;">
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
 
-# Your Order is Being Processed
+    @include('emails.partials.container-start')
 
-Dear {{ $user->first_name }},
+    <h1 style="font-size:18px;margin:0 0 8px;">Your Order is Being Processed</h1>
 
-Your order #{{ $order->order_number }} is now being processed by our team.
+    <p style="margin:0 0 12px;color:#475569;">Dear {{ $user->first_name }},</p>
 
-We will notify you once your order has been approved and is ready for dispatch.
+    <p style="margin:0 0 12px;color:#475569;">Your order <strong>#{{ $order->order_number }}</strong> is now being processed by our team. We will notify you once it is approved and ready for dispatch.</p>
 
-## Order Summary
+    <div style="margin:12px 0;padding:12px;background:#f8fafc;border:1px solid #eef6ff;border-radius:8px;">
+        <div><strong>Order #:</strong> {{ $order->order_number }}</div>
+        <div><strong>Date:</strong> {{ $order->submitted_at->format('d M Y, H:i:s') }}</div>
+        <div><strong>Total:</strong> £{{ number_format($order->grand_total, 2) }}</div>
+    </div>
 
-**Order #:** {{ $order->order_number }}  
-**Date:** {{ $order->submitted_at->format('d M Y, H:i:s') }}  
-**Total:** £{{ number_format($order->grand_total, 2) }}
+    <div style="text-align:center;margin:18px 0;">
+        @component('mail::button', ['url' => route('order.confirmation', $order), 'color' => 'primary'])
+            View Order Details
+        @endcomponent
+    </div>
 
-@component('mail::button', ['url' => route('order.confirmation', $order)])
-View Order Details
-@endcomponent
+    <p style="margin:12px 0 0;color:#475569;">If you have any questions, please contact us at <a href="mailto:{{ config('mail.from.address') }}">{{ config('mail.from.address') }}</a>.</p>
 
-If you have any questions, please contact us at <a href="mailto:{{ config('mail.from.address') }}">{{ config('mail.from.address') }}</a>.
+    <p style="margin:18px 0 0;color:#6b7280;">Thank you for choosing Copower Wholesale!<br><strong>Copower Wholesale Team</strong></p>
 
-Thank you for choosing Copower Wholesale!
-
-**Copower Wholesale Team**
+    @include('emails.partials.container-end')
 
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent

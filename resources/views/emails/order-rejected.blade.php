@@ -1,36 +1,35 @@
 {{-- resources/views/emails/order-rejected.blade.php --}}
 @component('mail::layout')
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <span style="font-size: 24px; font-weight: 900; color: #0F3D5E;">COPOWER</span>
-        <span style="font-size: 12px; font-weight: 800; color: #00A3E0; display: block;">Wholesale</span>
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
 
-# Update on Your Order
+    @include('emails.partials.container-start')
 
-Hello {{ $user->full_name }},
+    <h1 style="font-size:18px;margin:0 0 8px;">Update on Your Order</h1>
 
-Unfortunately, we are unable to proceed with your order **{{ $order->order_number }}** at this time.
+    <p style="margin:0 0 12px;color:#475569;">Hello {{ $user->full_name }},</p>
 
-## Reason
+    <p style="margin:0 0 12px;color:#475569;">Unfortunately, we are unable to proceed with your order <strong>{{ $order->order_number }}</strong> at this time.</p>
 
-> {{ $reason }}
+    <div style="background:#fff5f5;border:1px solid #fee2e2;padding:12px;border-radius:8px;margin:12px 0;color:#991b1b;">
+        <strong>Reason</strong>
+        <div style="margin-top:6px;">{{ $reason }}</div>
+    </div>
 
-If you have any questions or would like to discuss this further, please reply to this email or contact our sales team. We'd be happy to help you find an alternative.
+    <p style="margin:0 0 12px;color:#475569;">If you have any questions or would like to discuss this further, please reply to this email or contact our sales team.</p>
 
-@component('mail::button', ['url' => $productsUrl])
-Browse Products
-@endcomponent
+    <div style="text-align:center;margin:14px 0;">
+        @component('mail::button', ['url' => $productsUrl, 'color' => 'primary'])
+            Browse Products
+        @endcomponent
+    </div>
 
-Thank you for your understanding,<br>
-**Copower Wholesale Team**
+    <p style="margin:18px 0 0;color:#6b7280;">Thank you for your understanding,<br><strong>Copower Wholesale Team</strong></p>
+
+    @include('emails.partials.container-end')
 
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent

@@ -1,15 +1,12 @@
 {{-- resources/views/emails/order-confirmation.blade.php --}}
 @component('mail::layout')
-{{-- Header --}}
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <img src="{{ asset('images/copower-logo.png') }}" alt="Copower Wholesale" style="max-height: 50px;">
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
 
-{{-- Body --}}
+    @include('emails.partials.container-start')
+
+    {{-- Body --}}
 # Copower Wholesale
 
 Thank you for your quote request from Copower Wholesale. You can check the status of your quote request by logging into your account.
@@ -102,21 +99,11 @@ If you have questions about your quote request, you can email us at <a href="mai
 | **Street** | {{ $order->shipping_address ?? 'N/A' }} |
 | **Email** | {{ $user->email }} |
 
----
+    <p style="margin:18px 0 0;color:#6b7280;">Thank you,<br><strong>Copower Wholesale Team</strong></p>
 
-Thank you,<br>
-**Copower Wholesale Team**
+    @include('emails.partials.container-end')
 
----
-
-{{-- Footer --}}
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-    <br>
-    <small style="color: #6b7280;">
-        This email was sent to {{ $user->email }}. If you did not request this quote, please ignore this email.
-    </small>
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent

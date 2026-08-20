@@ -1,46 +1,35 @@
 {{-- resources/views/emails/admin/otp.blade.php --}}
 @component('mail::layout')
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <span style="font-size: 24px; font-weight: 900; color: #0F3D5E;">COPOWER</span>
-        <span style="font-size: 12px; font-weight: 800; color: #00A3E0; display: block;">Admin Verification</span>
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
 
-# Hello {{ $name }},
+    @include('emails.partials.container-start')
 
-Thank you for registering as an admin for Copower Wholesale.
+    <h1 style="font-size:18px;margin:0 0 8px;">Admin Verification</h1>
+    <p style="margin:0 0 12px;color:#475569;">Hello {{ $name }},</p>
 
-To complete your registration, please use the verification code below:
+    <p style="margin:0 0 12px;color:#475569;">Thank you for registering as an admin for Copower Wholesale. To complete your registration, please use the verification code below.</p>
 
-<div style="background: #f3f4f6; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;">
-    <span style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #0F3D5E; font-family: monospace;">
-        {{ $otp }}
-    </span>
-</div>
+    <div style="background: #f1f7fb; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0; display:inline-block;">
+        <span style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #0F3D5E; font-family: monospace;">{{ $otp }}</span>
+    </div>
 
-<p style="text-align: center; font-size: 14px; color: #6b7280;">
-    This code will expire in <strong>{{ $expiry_minutes }} minutes</strong>.
-</p>
+    <p style="text-align:center;font-size:14px;color:#6b7280;margin-top:8px;">This code will expire in <strong>{{ $expiry_minutes }} minutes</strong>.</p>
 
-@component('mail::button', ['url' => route('admin.verify')])
-Verify Your Email
-@endcomponent
+    <div style="text-align:center;margin:16px 0;">
+        @component('mail::button', ['url' => route('admin.verify'), 'color' => 'primary'])
+            Verify Your Email
+        @endcomponent
+    </div>
 
-If you did not request this, please ignore this email.
+    <p style="margin:12px 0 0;color:#6b7280;">If you did not request this, please ignore this email.</p>
 
-Thank you,<br>
-**Copower Wholesale Team**
+    <p style="margin:18px 0 0;color:#6b7280;">Thank you,<br><strong>Copower Wholesale Team</strong></p>
+
+    @include('emails.partials.container-end')
 
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-    <br>
-    <small style="color: #6b7280;">
-        This is an automated message. Please do not reply to this email.
-    </small>
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent

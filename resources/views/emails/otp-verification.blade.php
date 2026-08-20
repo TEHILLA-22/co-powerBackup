@@ -1,13 +1,10 @@
 {{-- resources/views/emails/otp-verification.blade.php --}}
 @component('mail::layout')
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <span style="font-size: 24px; font-weight: 900; color: #0F3D5E;">COPOWER</span>
-        <span style="font-size: 12px; font-weight: 800; color: #00A3E0; display: block;">Wholesale</span>
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
+
+    @include('emails.partials.container-start')
 
 # Hello {{ $name }},
 
@@ -32,13 +29,9 @@ If you did not create an account, please ignore this email.
 Thank you,<br>
 **Copower Wholesale Team**
 
+    @include('emails.partials.container-end')
+
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-    <br>
-    <small style="color: #6b7280;">
-        This is an automated message. Please do not reply to this email.
-    </small>
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent

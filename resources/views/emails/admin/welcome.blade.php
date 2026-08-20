@@ -1,32 +1,30 @@
 {{-- resources/views/emails/admin/welcome.blade.php --}}
 @component('mail::layout')
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <span style="font-size: 24px; font-weight: 900; color: #0F3D5E;">COPOWER</span>
-        <span style="font-size: 12px; font-weight: 800; color: #00A3E0; display: block;">Admin</span>
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
 
-# Welcome, {{ $name }}!
+    @include('emails.partials.container-start')
 
-Your admin account for the **Copower Wholesale** panel has been created successfully.
+    <h1 style="font-size:18px;margin:0 0 8px;">Welcome, {{ $name }}!</h1>
 
-Your role: **{{ ucfirst($admin->role ?? 'admin') }}**
+    <p style="margin:0 0 12px;color:#475569;">Your admin account for the <strong>Copower Wholesale</strong> panel has been created successfully.</p>
 
-@component('mail::button', ['url' => $loginUrl])
-Login to Admin Panel
-@endcomponent
+    <p style="margin:0 0 12px;color:#475569;"><strong>Your role:</strong> {{ ucfirst($admin->role ?? 'admin') }}</p>
 
-For security reasons, you will be asked to set a new password on your first login.
+    <div style="text-align:center;margin:18px 0;">
+        @component('mail::button', ['url' => $loginUrl, 'color' => 'primary'])
+            Login to Admin Panel
+        @endcomponent
+    </div>
 
-Thank you,<br>
-**Copower Wholesale Team**
+    <p style="margin:0 0 12px;color:#475569;">For security reasons, you will be asked to set a new password on your first login.</p>
+
+    <p style="margin:18px 0 0;color:#6b7280;">Thank you,<br><strong>Copower Wholesale Team</strong></p>
+
+    @include('emails.partials.container-end')
 
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent

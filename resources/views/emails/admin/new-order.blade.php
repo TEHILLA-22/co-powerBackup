@@ -1,32 +1,25 @@
 {{-- resources/views/emails/admin/new-order.blade.php --}}
 @component('mail::layout')
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <img src="{{ asset('images/copower-logo.png') }}" alt="Copower Wholesale" style="max-height: 50px;">
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
 
-{{-- Body --}}
-# New Order Received
+    @include('emails.partials.container-start')
 
-A new order has been placed on Copower Wholesale.
+    <h2 style="margin:0 0 8px;font-size:16px;color:#0b2540;">New Order Received</h2>
 
----
+    <p style="margin:0 0 12px;color:#475569;">A new order has been placed on Copower Wholesale.</p>
 
-## Order Details
+    <div style="margin:12px 0;padding:12px;background:#f8fafc;border:1px solid #eef6ff;border-radius:8px;">
+        <div><strong>Order #:</strong> {{ $order->order_number }}</div>
+        <div><strong>Customer:</strong> {{ $user->company_name }} ({{ $user->email }})</div>
+        <div><strong>Date:</strong> {{ $order->submitted_at->format('d M Y, H:i:s') }}</div>
+        <div><strong>Total:</strong> £{{ number_format($order->grand_total, 2) }}</div>
+    </div>
 
-**Order #:** {{ $order->order_number }}  
-**Customer:** {{ $user->company_name }} ({{ $user->email }})  
-**Date:** {{ $order->submitted_at->format('d M Y, H:i:s') }}  
-**Total:** £{{ number_format($order->grand_total, 2) }}
+    <h3 style="margin:12px 0 8px;font-size:14px;color:#0b2540;">Order Items</h3>
 
----
-
-## Order Items
-
-<table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
     <thead>
         <tr style="background-color: #f3f4f6;">
             <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Product</th>
@@ -82,13 +75,9 @@ View Order in Admin
 Thank you,<br>
 **Copower Wholesale System**
 
+    @include('emails.partials.container-end')
+
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-    <br>
-    <small style="color: #6b7280;">
-        This is an automated notification. Please do not reply to this email.
-    </small>
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent

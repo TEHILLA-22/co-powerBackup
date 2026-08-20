@@ -1,14 +1,11 @@
 {{-- resources/views/emails/quote-confirmation.blade.php --}}
 @component('mail::layout')
 @slot('header')
-@component('mail::header', ['url' => config('app.url')])
-    <div style="text-align: center;">
-        <img src="{{ asset('images/copower-logo.png') }}" alt="Copower Wholesale" style="max-height: 50px;">
-    </div>
-@endcomponent
+    @include('emails.partials.header')
 @endslot
 
-<!-- Hero image placeholder - drop your brand hero/email banner image here once ready -->
+    <!-- Hero image placeholder - drop your brand hero/email banner image here once ready -->
+    @include('emails.partials.container-start')
 @if(file_exists(public_path('images/email-hero.png')))
 <div style="width: 100%; margin: 0 0 24px 0;">
     <img src="{{ asset('images/email-hero.png') }}" alt="Copower Wholesale" style="width: 100%; max-width: 600px; max-height: 240px; object-fit: cover; border-radius: 12px; display: block;">
@@ -142,13 +139,9 @@ If you have any questions about this quote, please reply to this email or contac
 Thank you for choosing Copower Wholesale.<br>
 **Copower Wholesale Team**
 
+    @include('emails.partials.container-end')
+
 @slot('footer')
-@component('mail::footer')
-    © {{ date('Y') }} Copower Wholesale. All rights reserved.
-    <br>
-    <small style="color: #6b7280;">
-        Quote {{ $quote->quote_number }} · You are receiving this email because a quote was submitted for {{ $user->email }}.
-    </small>
-@endcomponent
+    @include('emails.partials.footer')
 @endslot
 @endcomponent
